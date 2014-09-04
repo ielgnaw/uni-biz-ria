@@ -1,4 +1,4 @@
 uni-biz-ria
 ===========
 
-RIA base for zq&amp;life biz system
+RIA extension for zq&amp;life biz system

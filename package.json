@@ -1,0 +1,39 @@
+{
+  "name": "uni-biz-ria",
+  "description": "RIA extension for zq&life biz system",
+  "version": "0.0.1-beta.1",
+  "maintainers": [
+    {
+      "name": "ielgnaw",
+      "email": "wuji0223@gmail.com"
+    }
+  ],
+  "dependencies": {
+    "er": ">=3.1.0-beta.2",
+    "esui": ">=3.1.0-beta.3",
+    "ef": "3.1.x",
+    "underscore": ">=1.5.2",
+    "moment": "2.x",
+    "etpl": ">=2.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ielgnaw/uni-biz-ria.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ielgnaw/uni-biz-ria/issues"
+  },
+  "homepage": "https://github.com/ielgnaw/uni-biz-ria",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "RIA",
+    "esui",
+    "er",
+    "biz"
+  ],
+  "author": "ielgnaw",
+  "license": "ISC"
+}
