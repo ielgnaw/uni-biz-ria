@@ -3,15 +3,13 @@
  * @author ielgnaw(wuji0223@gmail.com)
  */
 
-define(
-    function (require) {
+define(function (require) {
 
-        function start() {
-            console.log('start');
-        }
-
-        return {
-            start: start
-        };
+    function start() {
+        console.log('start');
     }
-);
+
+    return {
+        start: start
+    };
+});

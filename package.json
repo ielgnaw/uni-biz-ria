@@ -1,7 +1,7 @@
 {
   "name": "uni-biz-ria",
   "description": "RIA extension for zq&life biz system",
-  "version": "0.0.1-beta.1",
+  "version": "0.0.1-beta.2",
   "maintainers": [
     {
       "name": "ielgnaw",
@@ -14,7 +14,8 @@
     "ef": "3.1.x",
     "underscore": ">=1.5.2",
     "moment": "2.x",
-    "etpl": ">=2.1.0"
+    "etpl": ">=2.1.0",
+    "jquery": "1.9.1"
   },
   "repository": {
     "type": "git",
