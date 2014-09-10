@@ -1,0 +1,121 @@
+<!-- target: dynamicForm -->
+<!-- var: formType = ${formType} || 'create' -->
+${formType}
+
+
+<!-- for: ${formItemConfigs} as ${formItem} -->
+    <!-- if: ${formItem.type} == 'formSpliter' -->
+        <div class="form-item-split">
+        </div>
+    <!-- elif: ${formItem.type} == 'createFormItemsBtn' -->
+        <!-- var: hasCreateFormItemsBtn = 'showFormItemsBtn' -->
+        <!-- var: dataIndex = ${formItem.dataIndex} -->
+        <!-- var: originalDataIndex = ${formItem.dataIndex} -->
+        <!-- var: title = ${formItem.title} -->
+        <!-- var: delTitle = ${formItem.delTitle} -->
+    <!-- elif: ${formItem.components} -->
+        <div class="form-row" id="${formItem.components.containerId}"
+            component-submit-name="${formItem.components.submitName}">
+        </div>
+    <!-- else -->
+        <div class="form-row">
+            <!-- if: ${formItem.title} -->
+                <div class="form-key">${formItem.title}：</div>
+            <!-- else -->
+                <div class="form-key"></div>
+            <!-- /if -->
+            <!-- if: ${formItem.type} == 'BoxGroup' -->
+                <div class="form-value">
+                    <span data-ui="id:${formItem.id};name:${formItem.id};type:${formItem.type};boxType:${formItem.boxType};orientation:${formItem.orientation};"
+                        checkbox-required="<!-- if: ${formItem.boxType} == 'checkbox' && ${formItem.rules.required} -->1<!-- else -->0<!-- /if -->"
+                        checkbox-required-error-message="请选择${formItem.title}"
+                        checkbox-max-selected-count="${formItem.rules.maxSelectedCount}"
+                        checkbox-max-selected-count-error-message="${formItem.title}最多选择${formItem.rules.maxSelectedCount}个">
+                        <ul>
+                            <!-- for: ${formItem.list} as ${listItem}, ${index} -->
+                            <li>
+                                <input type="${formItem.boxType}"
+                                    name="${formItem.id}"
+                                    id="${formItem.id}_${index}"
+                                    value="${listItem.value}"
+                                    <!-- if: ${listItem.checked} -->
+                                    checked="checked"
+                                    <!-- /if -->
+                                />
+                                <label for="${formItem.id}_${index}">${listItem.value}</label>
+                            </li>
+                            <!-- /for -->
+                        </ul>
+                    </span>
+                    <!-- if: ${formItem.rules.required} -->
+                        <span class="red">*</span>
+                        <span>必填</span>
+                    <!-- /if -->
+                </div>
+            <!-- elif: ${formItem.type} == 'Select' -->
+                <div class="form-value">
+                    <select class="select" name="${formItem.id}" data-ui="
+                        type:Select;
+                        name:${formItem.id};
+                        width:${formItem.properties.width};
+                    ">
+                        <!-- for: ${formItem.list} as ${listItem}, ${index} -->
+                            <option value="${listItem.value}"
+                                <!-- if: ${listItem.selected} == '1' -->
+                                    selected="selected"
+                                <!-- /if -->
+                            >
+                                ${listItem.text}
+                            </option>
+                        <!-- /for -->
+                    </select>
+                    <!-- if: ${formItem.rules.required} -->
+                        <span class="red">*</span>
+                        <span>必填</span>
+                    <!-- /if -->
+                </div>
+            <!-- else -->
+                <div class="form-value">
+                    <span name="${formItem.id}"
+                        <!-- if: ${formItem.rules.ajaxValid} -->
+                        ajax-valid="${formItem.rules.ajaxValid}"
+                        <!-- /if -->
+                        data-ui="
+                        <!-- for: ${formItem} as ${val}, ${key} -->
+                            <!-- if: ${key} != 'properties' && ${key} != 'rules' -->
+                                ${key}: ${val};
+                            <!-- /if -->
+                        <!-- /for -->
+
+                        <!-- for: ${formItem.properties} as ${propertyVal}, ${propertyKey} -->
+                            ${propertyKey}: ${propertyVal};
+                        <!-- /for -->
+
+                        <!-- for: ${formItem.rules} as ${ruleVal}, ${ruleKey} -->
+                            ${ruleKey}: ${ruleVal};
+                        <!-- /for -->
+
+                        <!-- if: ${formItem.type} == 'Uploader' -->
+                        action: ${uploadUrl};
+                        <!-- /if -->
+                    ">
+                    </span>
+                    <!-- if: ${formItem.rules.required} -->
+                        <span class="red">*</span>
+                        <span>
+                            必填 <!-- if: ${formItem.properties.extTip} -->${formItem.properties.extTip}<!-- /if -->
+                        </span>
+                    <!-- else -->
+                        <!-- if: ${formItem.properties.extTip} -->
+                            <span class="red">*</span>
+                            <span>${formItem.properties.extTip</span>
+                        <!-- /if -->
+                    <!-- /if -->
+                </div>
+            <!-- /if -->
+            <!-- if: ${formItem.properties.previewContainer} -->
+                <div data-ui-type="Image" data-ui-id="${formItem.properties.previewContainer}" class="img-preview"></div>
+            <!-- /if -->
+        </div>
+    <!-- /if -->
+<!-- /for -->

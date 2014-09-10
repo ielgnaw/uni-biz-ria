@@ -9,6 +9,13 @@ define(function (require) {
     var util = require('er/util');
 
     /**
+     * 默认的 form 类型
+     *
+     * @type {string}
+     */
+    var DEFALUT_FORM_TYPE = 'create';
+
+    /**
      * 动态 Form Model 基类
      *
      * @extends UIModel
@@ -23,7 +30,7 @@ define(function (require) {
      *
      * @type {string}
      */
-    DynamicFormModel.prototype.formType = 'create';
+    DynamicFormModel.prototype.formType = DEFALUT_FORM_TYPE;
 
     /**
      * 上传组件的上传地址
@@ -33,6 +40,13 @@ define(function (require) {
     DynamicFormModel.prototype.uploadUrl = '';
 
     /**
+     * dynamicForm 表单项的配置
+     *
+     * @type {Array.<Object>}
+     */
+    DynamicFormModel.prototype.formItemConfigs = [];
+
+    /**
      * 数据处理
      *
      * @override
@@ -40,6 +54,8 @@ define(function (require) {
     DynamicFormModel.prototype.prepare = function () {
         var me = this;
         me.set('formType', me.formType);
+        me.set('uploadUrl', me.uploadUrl);
+        me.set('formItemConfigs', me.formItemConfigs);
         UIModel.prototype.prepare.apply(me, arguments);
     };
 
