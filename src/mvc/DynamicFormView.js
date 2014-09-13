@@ -10,6 +10,7 @@ define(function (require) {
     var _ = require('underscore');
     var util = require('er/util');
     var Deferred = require('er/Deferred');
+    var uniUtil = require('../util');
     var FormView = require('./FormView');
 
     /**
@@ -100,7 +101,8 @@ define(function (require) {
             ).then(
                 function (ret) {
                     var properties = ret.properties;
-                    DynamicFormView.prototype.uiProperties = properties;
+                    // DynamicFormView.prototype.uiProperties = properties;
+                    me.uiProperties = properties; // 要挂载在 me 上，这样子类才能生效
 
                     // 设置 uiEvents 要在执行父类的 enterDocument 之前
                     me.uiEvents = _.extend(
@@ -127,7 +129,9 @@ define(function (require) {
                         me.get('ideaName')
                     );
 
-                    // 遍历 properties ，初始化 formItem 的 tip
+                    // 遍历 properties
+                    // 初始化 formItem 的 tip
+                    // 如果是修改的话，那么设置 Uploader 的值
                     _.forEach(
                         properties,
                         function (property, key) {
@@ -137,124 +141,15 @@ define(function (require) {
                                     me.get(key)
                                 );
                             }
+
+                            // 说明是 Uploader
+                            if (property.uploaderVal) {
+                                me.get(key).setRawValue(property.uploaderVal);
+                            }
                         }
                     );
 
-                    // me.getFormInstance().fire(
-                    //     'submit',
-                    //     {
-                    //         aaa: 1
-                    //     }
-                    // );
-                    // console.log(me.getFormData());
-                    // console.log(me.getUIEvents());
-                    // console.log(me.getViewName());
 
-                    // var componentData;
-
-                    // Deferred.all(
-                    //     (function () {
-                    //         return _.map(
-                    //             properties.components,
-                    //             function (component, index) {
-                    //                 return loadConfig(
-                    //                     'common/component/' + component.type + '/main',
-                    //                     component
-                    //                 );
-                    //             }
-                    //         );
-                    //     })()
-                    // ).then(
-                    //     function (d) {
-                    //         componentData = d.modExport.init(d.component, view);
-                    //         d.modExport.on(
-                    //             'formSubmitDataChange',
-                    //             function (changedData) {
-                    //                 componentData = changedData.curFormData;
-                    //             }
-                    //         );
-                    //     }
-                    // );
-
-                    // var form = view.get('createIdeaForm');
-                    // form.on(
-                    //     'submit',
-                    //     function (e) {
-                    //         validAjax(view).then(
-                    //             function (ret) {
-                    //                 var isValid = true;
-                    //                 for (var i = 0, len = ret.length; i < len; i++) {
-                    //                     if (ret[i].data.status !== 0) {
-                    //                         var esuiDom = ret[i].esuiDom;
-                    //                         var validityLabel = esuiDom.getValidityLabel();
-                    //                         validityLabel.display(false, ret[i].data.statusInfo);
-                    //                         validityLabel.show();
-                    //                         isValid = false;
-                    //                     }
-                    //                 }
-                    //                 if (isValid) {
-                    //                     if (!validCheckbox()) {
-                    //                         return;
-                    //                     }
-                    //                     Dialog.confirm({
-                    //                         title: '确认',
-                    //                         content: '确认添加创意？',
-                    //                         width: 400,
-                    //                         skin: 'exconfirm'
-                    //                     }).on(
-                    //                         'ok',
-                    //                         function () {
-                    //                             var data = form.getData();
-                    //                             var ideaName = data.ideaName;
-                    //                             delete data.ideaName;
-                    //                             var componentSubmitNameDom =
-                    //                                 $('[component-submit-name]', form.main);
-                    //                             if (componentSubmitNameDom
-                    //                                 && componentSubmitNameDom.length
-                    //                             ) {
-                    //                                 var componentSubmitName =
-                    //                                     componentSubmitNameDom.attr('component-submit-name');
-                    //                                 data[componentSubmitName] = componentData;
-                    //                             }
-
-                    //                             require('common/ejson').post(
-                    //                                 ajaxUrl.ADD_IDEA,
-                    //                                 {
-                    //                                     ideaName: ideaName,
-                    //                                     ideaInfoS: decodeURIComponent(
-                    //                                         shim.stringify(data)
-                    //                                     )
-                    //                                 },
-                    //                                 'json'
-                    //                             ).then(
-                    //                                 function (data) {
-                    //                                     if (data.status) {
-                    //                                         Dialog.alert({
-                    //                                             content: data.statusInfo
-                    //                                                         || '请求错误'
-                    //                                         });
-                    //                                     }
-                    //                                     else {
-                    //                                         Dialog.alert({
-                    //                                             content: '添加创意成功'
-                    //                                         }).on(
-                    //                                             'ok',
-                    //                                             function () {
-                    //                                                 locator.redirect(
-                    //                                                     '#/ideaManage'
-                    //                                                 );
-                    //                                             }
-                    //                                         );
-                    //                                     }
-                    //                                 }
-                    //                             );
-                    //                         }
-                    //                     );
-                    //                 }
-                    //             }
-                    //         );
-                    //     }
-                    // );
                 }
             );
         }
@@ -304,19 +199,35 @@ define(function (require) {
      * @return {Promise}
      */
     function buildUIProperties(formItemConfigs, model) {
+        var formType = model.get('formType');
         var defer = new Deferred();
         var len = formItemConfigs.length;
-        var properties = {};
-        properties.components = [];
+        var ret = {};
+        ret.components = [];
         _.forEach(
             formItemConfigs,
             function (formItemConfig, index) {
-                if (formItemConfig.properties) {
-                    properties[formItemConfig.id] = formItemConfig.properties;
+                var properties = formItemConfig.properties;
+
+                if (properties) {
+                    ret[formItemConfig.id] = properties;
+
+                    // 把 Uploader 类型的 formItem 的值直接放入到 properties 中，
+                    // 便于不用循环就可以回填 Uploader 的值
+                    if (formType === 'edit'
+                        && formItemConfig.type === 'Uploader'
+                    ) {
+                        var uploaderData = model.get(formItemConfig.id);
+                        ret[formItemConfig.id].uploaderVal = {
+                            width: uploaderData.width || 50,
+                            height: uploaderData.height || 50,
+                            previewUrl: decodeURIComponent(uploaderData)
+                        };
+                    }
                 }
 
                 if (formItemConfig.components) {
-                    properties.components.push(formItemConfig.components);
+                    ret.components.push(formItemConfig.components);
                 }
 
                 // 把要动态添加的元素设置到 model 中，便于在 action 中获取
@@ -326,7 +237,7 @@ define(function (require) {
 
                 if (index === len - 1) {
                     defer.resolve({
-                        properties: properties
+                        properties: ret
                     });
                 }
             }

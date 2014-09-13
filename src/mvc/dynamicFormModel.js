@@ -121,7 +121,8 @@ define(function (require) {
             var formData = ideaInfo.ideaInfoS
                 ? uniUtil.parseJson(ideaInfo.ideaInfoS)
                 : '';
-
+            console.log(formData);
+            console.log(formItemConfigs);
              _.forEach(
                 formData,
                 function (value, key) {
