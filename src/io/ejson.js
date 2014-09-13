@@ -186,7 +186,7 @@ define(function (require) {
             default:
                 bizStatusInfo = data.statusInfo
                     ? data.statusInfo
-                    : BIZ_STATUS_ERROR[bizStatusCode] || DEFAULT_ERROR_MSG;
+                    : (BIZ_STATUS_ERROR[bizStatusCode] || DEFAULT_ERROR_MSG);
 
                 showAlert(bizStatusInfo, false);
                 break;

@@ -68,9 +68,9 @@ define(function (require) {
      *
      * @return {esui.Form}
      */
-    // FormView.prototype.getFormInstance = function () {
-    //     return this.get('form');
-    // }
+    FormView.prototype.getFormInstance = function () {
+        return this.get('form');
+    }
 
     /**
      * 从表单中获取数据

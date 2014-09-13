@@ -25,25 +25,37 @@ define(function (require) {
     DynamicFormView.prototype.template = 'dynamicForm';
 
     /**
-     * 重置表单
+     * form 提交成功后的回调函数
      */
-    function reset() {
-        this.fire('reset');
-    }
+    DynamicFormView.prototype.successFunc = function () {};
 
     /**
-     * 取消编辑
+     * form 提交成功后的回调函数
+     * 常规的错误处理函数已经在 ejson 中封装，会弹出错误信息
+     * 这里的 errorFunc 是为了做一些自定义的错误处理
      */
-    function cancelEdit() {
-        this.fire('cancel');
-    }
+    DynamicFormView.prototype.errorFunc = function () {};
 
-    /**
-     * 提交数据
-     */
-    function submit() {
-        this.fire('submit');
-    }
+    // /**
+    //  * 重置表单
+    //  */
+    // function reset() {
+    //     this.fire('reset');
+    // }
+
+    // /**
+    //  * 取消编辑
+    //  */
+    // function cancelEdit() {
+    //     this.fire('cancel');
+    // }
+
+    // /**
+    //  * 提交数据
+    //  */
+    // function submit() {
+    //     this.fire('submit');
+    // }
 
     /**
      * 绑定控件事件
@@ -82,167 +94,170 @@ define(function (require) {
 
         var formItemConfigs = model.get('formItemConfigs');
 
-        buildUIProperties(
-            formItemConfigs, model
-        ).then(
-            function (ret) {
-                var properties = ret.properties;
-                DynamicFormView.prototype.uiProperties = properties;
-                me.uiEvents = _.extend(
-                    {},
-                    me.uiEvents,
-                    {
-                        'form:submit': function (e) {
-                            this.fire(
-                                'submit',
-                                {
-                                    aaa: 1
-                                }
-                            );
+        if (_.isArray(formItemConfigs)) {
+            buildUIProperties(
+                formItemConfigs, model
+            ).then(
+                function (ret) {
+                    var properties = ret.properties;
+                    DynamicFormView.prototype.uiProperties = properties;
+
+                    // 设置 uiEvents 要在执行父类的 enterDocument 之前
+                    me.uiEvents = _.extend(
+                        {},
+                        me.uiEvents,
+                        {
+                            'form:submit': function (e) {
+                                me.fire(
+                                    'submit',
+                                    {
+                                        form: me.getFormInstance(),
+                                        ideaInfo: model.get('ideaInfo') // 修改才有的
+                                    }
+                                );
+                            }
                         }
-                    }
-                );
-                FormView.prototype.enterDocument.apply(me, arguments);
+                    );
 
-                // ideaName 不属于动态 form ， 它是一个固定的 formItem
-                me.initTip(
-                    '该标识只做系统管理使用，与展现无关',
-                    me.get('ideaName')
-                );
+                    FormView.prototype.enterDocument.apply(me, arguments);
 
-                // 遍历 properties ，初始化 formItem 的 tip
-                _.forEach(
-                    properties,
-                    function (property, key) {
-                        if (property.tip) {
-                            me.initTip(
-                                property.tip,
-                                me.get(key)
-                            );
+                    // ideaName 不属于动态 form ， 它是一个固定的 formItem
+                    me.initTip(
+                        '该标识只做系统管理使用，与展现无关',
+                        me.get('ideaName')
+                    );
+
+                    // 遍历 properties ，初始化 formItem 的 tip
+                    _.forEach(
+                        properties,
+                        function (property, key) {
+                            if (property.tip) {
+                                me.initTip(
+                                    property.tip,
+                                    me.get(key)
+                                );
+                            }
                         }
-                    }
-                );
+                    );
 
+                    // me.getFormInstance().fire(
+                    //     'submit',
+                    //     {
+                    //         aaa: 1
+                    //     }
+                    // );
+                    // console.log(me.getFormData());
+                    // console.log(me.getUIEvents());
+                    // console.log(me.getViewName());
 
-                console.log(me.uiEvents);
+                    // var componentData;
 
-                // me.getFormInstance().fire(
-                //     'submit',
-                //     {
-                //         aaa: 1
-                //     }
-                // );
-                // console.log(me.getFormData());
-                // console.log(me.getUIEvents());
-                // console.log(me.getViewName());
+                    // Deferred.all(
+                    //     (function () {
+                    //         return _.map(
+                    //             properties.components,
+                    //             function (component, index) {
+                    //                 return loadConfig(
+                    //                     'common/component/' + component.type + '/main',
+                    //                     component
+                    //                 );
+                    //             }
+                    //         );
+                    //     })()
+                    // ).then(
+                    //     function (d) {
+                    //         componentData = d.modExport.init(d.component, view);
+                    //         d.modExport.on(
+                    //             'formSubmitDataChange',
+                    //             function (changedData) {
+                    //                 componentData = changedData.curFormData;
+                    //             }
+                    //         );
+                    //     }
+                    // );
 
-                // var componentData;
+                    // var form = view.get('createIdeaForm');
+                    // form.on(
+                    //     'submit',
+                    //     function (e) {
+                    //         validAjax(view).then(
+                    //             function (ret) {
+                    //                 var isValid = true;
+                    //                 for (var i = 0, len = ret.length; i < len; i++) {
+                    //                     if (ret[i].data.status !== 0) {
+                    //                         var esuiDom = ret[i].esuiDom;
+                    //                         var validityLabel = esuiDom.getValidityLabel();
+                    //                         validityLabel.display(false, ret[i].data.statusInfo);
+                    //                         validityLabel.show();
+                    //                         isValid = false;
+                    //                     }
+                    //                 }
+                    //                 if (isValid) {
+                    //                     if (!validCheckbox()) {
+                    //                         return;
+                    //                     }
+                    //                     Dialog.confirm({
+                    //                         title: '确认',
+                    //                         content: '确认添加创意？',
+                    //                         width: 400,
+                    //                         skin: 'exconfirm'
+                    //                     }).on(
+                    //                         'ok',
+                    //                         function () {
+                    //                             var data = form.getData();
+                    //                             var ideaName = data.ideaName;
+                    //                             delete data.ideaName;
+                    //                             var componentSubmitNameDom =
+                    //                                 $('[component-submit-name]', form.main);
+                    //                             if (componentSubmitNameDom
+                    //                                 && componentSubmitNameDom.length
+                    //                             ) {
+                    //                                 var componentSubmitName =
+                    //                                     componentSubmitNameDom.attr('component-submit-name');
+                    //                                 data[componentSubmitName] = componentData;
+                    //                             }
 
-                // Deferred.all(
-                //     (function () {
-                //         return _.map(
-                //             properties.components,
-                //             function (component, index) {
-                //                 return loadConfig(
-                //                     'common/component/' + component.type + '/main',
-                //                     component
-                //                 );
-                //             }
-                //         );
-                //     })()
-                // ).then(
-                //     function (d) {
-                //         componentData = d.modExport.init(d.component, view);
-                //         d.modExport.on(
-                //             'formSubmitDataChange',
-                //             function (changedData) {
-                //                 componentData = changedData.curFormData;
-                //             }
-                //         );
-                //     }
-                // );
-
-                // var form = view.get('createIdeaForm');
-                // form.on(
-                //     'submit',
-                //     function (e) {
-                //         validAjax(view).then(
-                //             function (ret) {
-                //                 var isValid = true;
-                //                 for (var i = 0, len = ret.length; i < len; i++) {
-                //                     if (ret[i].data.status !== 0) {
-                //                         var esuiDom = ret[i].esuiDom;
-                //                         var validityLabel = esuiDom.getValidityLabel();
-                //                         validityLabel.display(false, ret[i].data.statusInfo);
-                //                         validityLabel.show();
-                //                         isValid = false;
-                //                     }
-                //                 }
-                //                 if (isValid) {
-                //                     if (!validCheckbox()) {
-                //                         return;
-                //                     }
-                //                     Dialog.confirm({
-                //                         title: '确认',
-                //                         content: '确认添加创意？',
-                //                         width: 400,
-                //                         skin: 'exconfirm'
-                //                     }).on(
-                //                         'ok',
-                //                         function () {
-                //                             var data = form.getData();
-                //                             var ideaName = data.ideaName;
-                //                             delete data.ideaName;
-                //                             var componentSubmitNameDom =
-                //                                 $('[component-submit-name]', form.main);
-                //                             if (componentSubmitNameDom
-                //                                 && componentSubmitNameDom.length
-                //                             ) {
-                //                                 var componentSubmitName =
-                //                                     componentSubmitNameDom.attr('component-submit-name');
-                //                                 data[componentSubmitName] = componentData;
-                //                             }
-
-                //                             require('common/ejson').post(
-                //                                 ajaxUrl.ADD_IDEA,
-                //                                 {
-                //                                     ideaName: ideaName,
-                //                                     ideaInfoS: decodeURIComponent(
-                //                                         shim.stringify(data)
-                //                                     )
-                //                                 },
-                //                                 'json'
-                //                             ).then(
-                //                                 function (data) {
-                //                                     if (data.status) {
-                //                                         Dialog.alert({
-                //                                             content: data.statusInfo
-                //                                                         || '请求错误'
-                //                                         });
-                //                                     }
-                //                                     else {
-                //                                         Dialog.alert({
-                //                                             content: '添加创意成功'
-                //                                         }).on(
-                //                                             'ok',
-                //                                             function () {
-                //                                                 locator.redirect(
-                //                                                     '#/ideaManage'
-                //                                                 );
-                //                                             }
-                //                                         );
-                //                                     }
-                //                                 }
-                //                             );
-                //                         }
-                //                     );
-                //                 }
-                //             }
-                //         );
-                //     }
-                // );
-            }
-        );
+                    //                             require('common/ejson').post(
+                    //                                 ajaxUrl.ADD_IDEA,
+                    //                                 {
+                    //                                     ideaName: ideaName,
+                    //                                     ideaInfoS: decodeURIComponent(
+                    //                                         shim.stringify(data)
+                    //                                     )
+                    //                                 },
+                    //                                 'json'
+                    //                             ).then(
+                    //                                 function (data) {
+                    //                                     if (data.status) {
+                    //                                         Dialog.alert({
+                    //                                             content: data.statusInfo
+                    //                                                         || '请求错误'
+                    //                                         });
+                    //                                     }
+                    //                                     else {
+                    //                                         Dialog.alert({
+                    //                                             content: '添加创意成功'
+                    //                                         }).on(
+                    //                                             'ok',
+                    //                                             function () {
+                    //                                                 locator.redirect(
+                    //                                                     '#/ideaManage'
+                    //                                                 );
+                    //                                             }
+                    //                                         );
+                    //                                     }
+                    //                                 }
+                    //                             );
+                    //                         }
+                    //                     );
+                    //                 }
+                    //             }
+                    //         );
+                    //     }
+                    // );
+                }
+            );
+        }
     };
 
     /*function delayed(time, value) {
