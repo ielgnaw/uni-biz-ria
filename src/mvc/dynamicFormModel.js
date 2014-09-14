@@ -122,39 +122,45 @@ define(function (require) {
                 ? uniUtil.parseJson(ideaInfo.ideaInfoS)
                 : '';
 
-             _.forEach(
-                formData,
-                function (value, key) {
-                    me.set(key, value);
-                    /*for (var i = 0, len = formConfigs.length; i < len; i++) {
-                        var tmp = formConfigs[i];
-                        if (tmp.id == key) {
-                            tmp.value = value;
-                            if (tmp.type === 'BoxGroup') {
-                                for (var j = 0, jLen = tmp.list.length; j < jLen; j++) {
-                                    if (value.indexOf(tmp.list[j].value) >= 0) {
-                                        tmp.list[j].checked = 1;
-                                    }
-                                    else {
-                                        delete tmp.list[j].checked;
-                                    }
-                                }
-                            }
+            for (var i = 0, len = formItemConfigs.length; i < len; i++) {
+                var formItem = formItemConfigs[i];
 
-                            if (tmp.type === 'Select') {
-                                for (var j = 0, jLen = tmp.list.length; j < jLen; j++) {
-                                    if (value.indexOf(tmp.list[j].value) >= 0) {
-                                        tmp.list[j].selected = 1;
-                                    }
-                                    else {
-                                        delete tmp.list[j].selected;
-                                    }
-                                }
+                // 审核拒绝时，所有表单项禁用
+                if (ideaInfo.auditStatusS === 0) {
+                    formItem.properties
+                            && (formItem.properties.disabled = 1);
+                }
+
+                var key = formItem.id;
+                var value = formData[key];
+
+                me.set(key, value);
+
+                if (value) {
+                    // 标识控件是否选中
+                    // BoxGroup 时用 checked 标识
+                    // Select 时用 selected 标识
+                    var sc = '';
+                    if (formItem.type === 'BoxGroup') {
+                        sc = 'checked';
+                    }
+                    else if (formItem.type === 'Select') {
+                        sc = 'selected';
+                    }
+
+                    // 这里判断是为了让非 BoxGroup ， Select 的控件不走下面循环的逻辑
+                    if (sc) {
+                        for (var j = 0, jLen = formItem.list.length; j < jLen; j++) {
+                            if (value.indexOf(formItem.list[j].value) >= 0) {
+                                formItem.list[j][sc] = 1;
+                            }
+                            else {
+                                delete formItem.list[j][sc];
                             }
                         }
-                    }*/
+                    }
                 }
-            );
+            }
         }
 
         UIModel.prototype.prepare.apply(me, arguments);

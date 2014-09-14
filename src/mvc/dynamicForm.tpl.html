@@ -27,10 +27,10 @@
             <!-- if: ${formItem.type} == 'BoxGroup' -->
                 <div class="form-value">
                     <span data-ui="id:${formItem.id};name:${formItem.id};type:${formItem.type};boxType:${formItem.boxType};orientation:${formItem.orientation};"
-                        checkbox-required="<!-- if: ${formItem.boxType} == 'checkbox' && ${formItem.rules.required} -->1<!-- else -->0<!-- /if -->"
-                        checkbox-required-error-message="请选择${formItem.title}"
-                        checkbox-max-selected-count="${formItem.rules.maxSelectedCount}"
-                        checkbox-max-selected-count-error-message="${formItem.title}最多选择${formItem.rules.maxSelectedCount}个">
+                        boxgroup-required="<!-- if: ${formItem.boxType} == 'checkbox' && ${formItem.rules.required} -->1<!-- else -->0<!-- /if -->"
+                        boxgroup-required-error-message="请选择${formItem.title}"
+                        boxgroup-max-selected-count="${formItem.rules.maxSelectedCount}"
+                        boxgroup-max-selected-count-error-message="${formItem.title}最多选择${formItem.rules.maxSelectedCount}个">
                         <ul>
                             <!-- for: ${formItem.list} as ${listItem}, ${index} -->
                             <li>

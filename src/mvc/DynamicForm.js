@@ -79,45 +79,48 @@ define(function (require) {
                                 isValid = false;
                             }
                         }
-                    }
-                );
 
-                return;
-                // console.log();
+                        if (isValid) {
+                            if (!validCheckbox()) {
+                                return;
+                            }
+                            console.log(model);
+                            console.log(params);
+                            console.log(view);
+                            Dialog.confirm({
+                                title: '确认',
+                                content: confirmMsg,
+                                width: 400,
+                                skin: 'exconfirm'
+                            }).on(
+                                'ok',
+                                function () {
+                                    // form 实例
+                                    var form = params.form;
+                                    var formData = form.getData();
+                                    var ideaName = formData.ideaName;
+                                    delete formData.ideaName;
 
-                console.log(model);
-                console.log(params);
-                console.log(view);
-                Dialog.confirm({
-                    title: '确认',
-                    content: confirmMsg,
-                    width: 400,
-                    skin: 'exconfirm'
-                }).on(
-                    'ok',
-                    function () {
-                        // form 实例
-                        var form = params.form;
-                        var formData = form.getData();
-                        var ideaName = formData.ideaName;
-                        delete formData.ideaName;
+                                    var ajaxArgs = {
+                                        ideaName: ideaName,
+                                        ideaInfoS: decodeURIComponent(
+                                            uniUtil.stringify(formData)
+                                        )
+                                    };
 
-                        var ajaxArgs = {
-                            ideaName: ideaName,
-                            ideaInfoS: decodeURIComponent(
-                                uniUtil.stringify(formData)
-                            )
-                        };
+                                    if (params.ideaInfo) {
+                                        ajaxArgs.ideaId = params.ideaInfo.ideaId;
+                                    }
 
-                        if (params.ideaInfo) {
-                            ajaxArgs.ideaId = params.ideaInfo.ideaId;
+                                    ejson.post(
+                                        model.get('submitUrl'),
+                                        ajaxArgs,
+                                        'json'
+                                    ).then(successFunc, errorFunc);
+                                }
+                            );
                         }
 
-                        ejson.post(
-                            model.get('submitUrl'),
-                            ajaxArgs,
-                            'json'
-                        ).then(successFunc, errorFunc);
                     }
                 );
             }
@@ -168,6 +171,56 @@ define(function (require) {
             );
         }
         return defer.promise;
+    }
+
+    /**
+     * 验证 form 中的多选框
+     */
+    function validCheckbox() {
+        var ret = true;
+
+        // 需要验证多选框是否选中以及选中个数的多选框的外层容器
+        var checkboxContainer = $('[boxgroup-required="1"]');
+        if (checkboxContainer && checkboxContainer.length) {
+            for (var i = 0, len = checkboxContainer.length; i < len; i++) {
+                var checkedElems = $(
+                    'input[type=checkbox]:checked',
+                    checkboxContainer[i]
+                );
+
+                var length = checkedElems.length;
+
+                if (!checkedElems || !length) {
+                    Dialog.alert({
+                        content: checkboxContainer[i].getAttribute(
+                            'boxgroup-required-error-message'
+                        ) || '请选择多选框'
+                    });
+                    ret = false;
+                    break;
+                }
+                else {
+                    var maxSelectedCount = checkboxContainer[i].getAttribute(
+                        'boxgroup-max-selected-count'
+                    );
+
+                    // 如果 maxSelectedCount 不存在或者不是数字就不验证了
+                    if (maxSelectedCount && !isNaN(maxSelectedCount)) {
+                        if (maxSelectedCount < length) {
+                            Dialog.alert({
+                                content: checkboxContainer[i].getAttribute(
+                                    'boxgroup-max-selected-count-error-message'
+                                ) || '选择的个数超过最大个数'
+                            });
+                            ret = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return ret;
     }
 
     util.inherits(DynamicForm, Action);
