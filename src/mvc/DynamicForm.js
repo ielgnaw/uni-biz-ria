@@ -11,6 +11,7 @@ define(function (require) {
     var etpl = require('etpl');
     var lib = require('esui/lib');
     var esui = require('esui');
+    var Deferred = require('er/Deferred');
     var Action = require('er/Action');
     var util = require('er/util');
     var Dialog = require('esui/Dialog');
@@ -66,6 +67,24 @@ define(function (require) {
         view.on(
             'submit',
             function (params) {
+                validAjax(view).then(
+                    function (ret) {
+                        var isValid = true;
+                        for (var i = 0, len = ret.length; i < len; i++) {
+                            if (ret[i].data.status !== 0) {
+                                var esuiDom = ret[i].esuiDom;
+                                var validityLabel = esuiDom.getValidityLabel();
+                                validityLabel.display(false, ret[i].data.statusInfo);
+                                validityLabel.show();
+                                isValid = false;
+                            }
+                        }
+                    }
+                );
+
+                return;
+                // console.log();
+
                 console.log(model);
                 console.log(params);
                 console.log(view);
@@ -101,65 +120,55 @@ define(function (require) {
                         ).then(successFunc, errorFunc);
                     }
                 );
-
-                // Dialog.confirm({
-                //     title: '确认',
-                //     content: confirmMsg,
-                //     width: 400,
-                //     skin: 'exconfirm'
-                // }).on(
-                //     'ok',
-                //     function () {
-                //         var data = form.getData();
-                //         var ideaName = data.ideaName;
-                //         delete data.ideaName;
-                //         var componentSubmitNameDom =
-                //             $('[component-submit-name]', form.main);
-                //         if (componentSubmitNameDom
-                //             && componentSubmitNameDom.length
-                //         ) {
-                //             var componentSubmitName =
-                //                 componentSubmitNameDom.attr('component-submit-name');
-                //             data[componentSubmitName] = componentData;
-                //         }
-
-                //         require('common/ejson').post(
-                //             ajaxUrl.ADD_IDEA,
-                //             {
-                //                 ideaName: ideaName,
-                //                 ideaInfoS: decodeURIComponent(
-                //                     shim.stringify(data)
-                //                 )
-                //             },
-                //             'json'
-                //         ).then(
-                //             function (data) {
-                //                 if (data.status) {
-                //                     Dialog.alert({
-                //                         content: data.statusInfo
-                //                                     || '请求错误'
-                //                     });
-                //                 }
-                //                 else {
-                //                     Dialog.alert({
-                //                         content: '添加创意成功'
-                //                     }).on(
-                //                         'ok',
-                //                         function () {
-                //                             locator.redirect(
-                //                                 '#/ideaManage'
-                //                             );
-                //                         }
-                //                     );
-                //                 }
-                //             }
-                //         );
-                //     }
-                // );
             }
-        )
-
+        );
     };
+
+    /**
+     * 提交表单之前验证 form 中需要额外发送请求验证的元素
+     *
+     * @param {er.View} view 当前 View
+     *
+     * @return {Promise}
+     */
+    function validAjax(view) {
+        var ajaxValidDoms = $('[ajax-valid]');
+        var len = ajaxValidDoms.length;
+        var defer = new Deferred();
+        var ret = [];
+        if (!len) {
+            defer.resolve(ret);
+        }
+        else {
+            _.forEach(
+                ajaxValidDoms,
+                function (ajaxValidDom, index) {
+                    var dom = $(ajaxValidDom);
+                    var esuiDom = view.get(dom.attr('name'));
+                    var validUrl = dom.attr('ajax-valid');
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        url: validUrl,
+                        data: {
+                            check: esuiDom.getValue()
+                        }
+                    }).done(
+                        function (data) {
+                            ret.push({
+                                data: data,
+                                esuiDom: esuiDom
+                            });
+                            if (index === len - 1) {
+                                defer.resolve(ret);
+                            }
+                        }
+                    );
+                }
+            );
+        }
+        return defer.promise;
+    }
 
     util.inherits(DynamicForm, Action);
 

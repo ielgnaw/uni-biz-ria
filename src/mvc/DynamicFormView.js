@@ -155,41 +155,6 @@ define(function (require) {
         }
     };
 
-    /*function delayed(time, value) {
-        console.warn(time);
-        var loading = new Deferred();
-        setTimeout(
-            function() {
-                console.log('已获取值 ' + value);
-                loading.resolve(value);
-                // loading.reject(value);
-            },
-            time
-        );
-        return loading.promise;
-    }
-    var list = [3,4,5];
-    Deferred.all(
-        (function () {
-            return _.map(
-                list,
-                function (c) {
-                    return delayed(c * 1000, c * 100);
-                }
-            );
-        })()
-        // delayed(3000, 300),
-        // delayed(4000, 400),
-        // delayed(5000, 500)
-    ).then(
-        function () {
-            console.log('resolve');
-        },
-        function () {
-            console.log('reject');
-        }
-    );*/
-
     /**
      * 根据 formItemConfigs 配置获取 properties ，便于之后渲染 esui 控件
      *
@@ -226,14 +191,14 @@ define(function (require) {
                     }
                 }
 
-                if (formItemConfig.components) {
-                    ret.components.push(formItemConfig.components);
-                }
+                // if (formItemConfig.components) {
+                //     ret.components.push(formItemConfig.components);
+                // }
 
-                // 把要动态添加的元素设置到 model 中，便于在 action 中获取
-                if (formItemConfig.type === 'createFormItemsBtn') {
-                    model.set('addElems', formItemConfig.elems);
-                }
+                // // 把要动态添加的元素设置到 model 中，便于在 action 中获取
+                // if (formItemConfig.type === 'createFormItemsBtn') {
+                //     model.set('addElems', formItemConfig.elems);
+                // }
 
                 if (index === len - 1) {
                     defer.resolve({
