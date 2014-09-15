@@ -106,15 +106,11 @@ define(function (require) {
             // ideaName 是必须的，不从动态配置里面读取
             me.set('ideaName', ideaInfo.ideaName);
 
-            // 审核拒绝时，所有表单项禁用
+            var auditStatusFlag = false;
+
+            // 审核通过时，所有表单项禁用
             if (ideaInfo.auditStatusS === 0) {
-                _.forEach(
-                    formItemConfigs,
-                    function (formItem) {
-                        formItem.properties
-                            && (formItem.properties.disabled = 1);
-                    }
-                );
+                auditStatusFlag = true;
                 me.set('isDisabled', 1);
             }
 
@@ -125,8 +121,7 @@ define(function (require) {
             for (var i = 0, len = formItemConfigs.length; i < len; i++) {
                 var formItem = formItemConfigs[i];
 
-                // 审核拒绝时，所有表单项禁用
-                if (ideaInfo.auditStatusS === 0) {
+                if (auditStatusFlag) {
                     formItem.properties
                             && (formItem.properties.disabled = 1);
                 }

@@ -54,11 +54,14 @@
                 </div>
             <!-- elif: ${formItem.type} == 'Select' -->
                 <div class="form-value">
-                    <select class="select" name="${formItem.id}" data-ui="
-                        type:Select;
-                        name:${formItem.id};
-                        width:${formItem.properties.width};
-                    ">
+                    <select class="select" name="${formItem.id}"
+                        data-ui-type="Select" data-ui-id="${formItem.id}"
+                        data-ui-name="${formItem.id}" data-ui-title="${formItem.title}"
+                        data-ui-width="${formItem.properties.width}"
+                        data-ui-excludeVal="${formItem.excludeVal}"
+                        data-ui-disabled="${formItem.properties.disabled}"
+                        data-ui-required="<!-- if: ${formItem.rules.required} -->1<!-- else -->0<!-- /if -->"
+                    >
                         <!-- for: ${formItem.list} as ${listItem}, ${index} -->
                             <option value="${listItem.value}"
                                 <!-- if: ${listItem.selected} == '1' -->

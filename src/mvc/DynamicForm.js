@@ -81,12 +81,10 @@ define(function (require) {
                         }
 
                         if (isValid) {
-                            if (!validCheckbox()) {
+                            if (!validCheckbox() || !validSelect(view)) {
                                 return;
                             }
-                            console.log(model);
-                            console.log(params);
-                            console.log(view);
+
                             Dialog.confirm({
                                 title: '确认',
                                 content: confirmMsg,
@@ -120,12 +118,40 @@ define(function (require) {
                                 }
                             );
                         }
-
                     }
                 );
             }
         );
     };
+
+    /**
+     * 验证 form 中的 select
+     *
+     * @param {er.View} view 当前 View
+     *
+     * @return {boolean}
+     */
+    function validSelect(view) {
+        var ret = true;
+
+        var selectDoms = $('[data-ui-type="Select"]');
+        for (var i = 0, len = selectDoms.length; i < len; i++) {
+            var curDom = $(selectDoms[i]);
+            if (curDom.attr('data-ui-required') == '1') {
+                var esuiKey = curDom.attr('data-ui-name');
+                var esuiDom = view.get(esuiKey);
+                var excludeVal = curDom.attr('data-ui-excludeVal');
+                if (esuiDom.getValue() == excludeVal) {
+                    Dialog.alert({
+                        content: '请选择' + (esuiDom.get('title') || '')
+                    });
+                    ret = false;
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
 
     /**
      * 提交表单之前验证 form 中需要额外发送请求验证的元素

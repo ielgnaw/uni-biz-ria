@@ -148,8 +148,6 @@ define(function (require) {
                             }
                         }
                     );
-
-
                 }
             );
         }
@@ -183,11 +181,15 @@ define(function (require) {
                         && formItemConfig.type === 'Uploader'
                     ) {
                         var uploaderData = model.get(formItemConfig.id);
-                        ret[formItemConfig.id].uploaderVal = {
-                            width: uploaderData.width || 50,
-                            height: uploaderData.height || 50,
-                            previewUrl: decodeURIComponent(uploaderData)
-                        };
+
+                        // 如果 uploaderData 不存在，说明这个 Uploader 组件不是必填项
+                        if (uploaderData) {
+                            ret[formItemConfig.id].uploaderVal = {
+                                width: uploaderData.width || 50,
+                                height: uploaderData.height || 50,
+                                previewUrl: decodeURIComponent(uploaderData)
+                            };
+                        }
                     }
                 }
 
