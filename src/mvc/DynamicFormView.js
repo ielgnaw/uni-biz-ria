@@ -10,8 +10,8 @@ define(function (require) {
     var _ = require('underscore');
     var util = require('er/util');
     var Deferred = require('er/Deferred');
-    var uniUtil = require('../util');
     var FormView = require('./FormView');
+    var dynamicUtil = require('./dynamicUtil');
 
     /**
      * 动态 Form View 基类
@@ -100,6 +100,9 @@ define(function (require) {
                 formItemConfigs, model
             ).then(
                 function (ret) {
+                    // 触发 submit 事件的参数
+                    var submitEvtArgs = {};
+
                     var properties = ret.properties;
                     // DynamicFormView.prototype.uiProperties = properties;
                     me.uiProperties = properties; // 要挂载在 me 上，这样子类才能生效
@@ -110,13 +113,14 @@ define(function (require) {
                         me.uiEvents,
                         {
                             'form:submit': function (e) {
-                                me.fire(
-                                    'submit',
+                                submitEvtArgs = _.extend(
+                                    submitEvtArgs,
                                     {
                                         form: me.getFormInstance(),
                                         ideaInfo: model.get('ideaInfo') // 修改才有的
                                     }
                                 );
+                                me.fire('submit', submitEvtArgs);
                             }
                         }
                     );
@@ -148,6 +152,45 @@ define(function (require) {
                             }
                         }
                     );
+
+                    // 对 components 做处理
+                    var components = properties.components;
+                    if (components.length) {
+                        // var componentData;
+                        Deferred.all(
+                            (function () {
+                                return _.map(
+                                    components,
+                                    function (component, index) {
+                                        return dynamicUtil.loadConfig(
+                                            './component/' + component.type + '/main',
+                                            component
+                                        );
+                                    }
+                                );
+                            })()
+                        ).then(
+                            function (d) {
+                                // componentData = d.modExport.init(d.component, me);
+                                d.modExport.init(d.component, me);
+                                d.modExport.on(
+                                    'formSubmitDataChange',
+                                    function (changedData) {
+                                        // componentData = changedData.curFormData;
+                                        submitEvtArgs = _.extend(
+                                            submitEvtArgs,
+                                            {
+                                                componentData: changedData.curFormData,
+                                                componentCallback: changedData.componentCallback
+                                            }
+                                        );
+                                    }
+                                );
+                            }
+                        );
+                    }
+
+
                 }
             );
         }
@@ -193,9 +236,9 @@ define(function (require) {
                     }
                 }
 
-                // if (formItemConfig.components) {
-                //     ret.components.push(formItemConfig.components);
-                // }
+                if (formItemConfig.components) {
+                    ret.components.push(formItemConfig.components);
+                }
 
                 // // 把要动态添加的元素设置到 model 中，便于在 action 中获取
                 // if (formItemConfig.type === 'createFormItemsBtn') {

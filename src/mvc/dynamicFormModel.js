@@ -5,7 +5,6 @@
 
 define(function (require) {
 
-    var _ = require('underscore');
     var UIModel = require('ef/UIModel');
     var util = require('er/util');
     var uniUtil = require('../util');
@@ -124,6 +123,12 @@ define(function (require) {
                 if (auditStatusFlag) {
                     formItem.properties
                             && (formItem.properties.disabled = 1);
+                }
+
+                // 回填自定义组件的值
+                if (formItem.components) {
+                    var submitName = formItem.components.submitName;
+                    formItem.components.data = formData[submitName];
                 }
 
                 var key = formItem.id;

@@ -14,7 +14,7 @@
         <!-- var: title = ${formItem.title} -->
         <!-- var: delTitle = ${formItem.delTitle} -->
     <!-- elif: ${formItem.components} -->
-        <div class="form-row" id="${formItem.components.containerId}"
+        <div class="form-row component-container" id="${formItem.components.containerId}"
             component-submit-name="${formItem.components.submitName}">
         </div>
     <!-- else -->
@@ -89,15 +89,12 @@
                                 ${key}: ${val};
                             <!-- /if -->
                         <!-- /for -->
-
                         <!-- for: ${formItem.properties} as ${propertyVal}, ${propertyKey} -->
                             ${propertyKey}: ${propertyVal};
                         <!-- /for -->
-
                         <!-- for: ${formItem.rules} as ${ruleVal}, ${ruleKey} -->
                             ${ruleKey}: ${ruleVal};
                         <!-- /for -->
-
                         <!-- if: ${formItem.type} == 'Uploader' -->
                         action: ${uploadUrl};
                         <!-- /if -->

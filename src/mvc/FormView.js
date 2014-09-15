@@ -70,7 +70,7 @@ define(function (require) {
      */
     FormView.prototype.getFormInstance = function () {
         return this.get('form');
-    }
+    };
 
     /**
      * 从表单中获取数据
