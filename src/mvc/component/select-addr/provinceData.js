@@ -135,26 +135,6 @@ define(function (require) {
         {
             value: '33',
             text: '重庆'
-        },
-        {
-            value: '34',
-            text: '香港'
-        },
-        {
-            value: '35',
-            text: '台湾'
-        },
-        {
-            value: '36',
-            text: '澳门'
-        },
-        {
-            value: '37',
-            text: '其他国家'
-        },
-        {
-            value: '7',
-            text: '日本'
         }
     ];
 

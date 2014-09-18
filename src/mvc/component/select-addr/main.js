@@ -35,6 +35,7 @@ define(function (require) {
      * @param {er.View} view 当前 View 实例
      */
     function renderElem(componentsConf, view) {
+
         formSubmitData.submitName = componentsConf.submitName || '';
 
         var containerId = componentsConf.containerId;
@@ -117,6 +118,16 @@ define(function (require) {
                 addr: view.get('addr' + component.index).getValue() || ''
             });
         }
+
+        // 初始化的时候也需要 fire
+        // 因为可能编辑 form 的时候，不改动这个组件的值
+        exports.fire(
+            'formSubmitDataChange',
+            {
+                curFormData: formSubmitData,
+                componentCallback: submitDataFilter
+            }
+        );
 
         return formSubmitData;
     }

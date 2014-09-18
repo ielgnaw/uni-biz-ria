@@ -172,7 +172,6 @@ define(function (require) {
                         ).then(
                             function (d) {
                                 // componentData = d.modExport.init(d.component, me);
-                                d.modExport.init(d.component, me);
                                 d.modExport.on(
                                     'formSubmitDataChange',
                                     function (changedData) {
@@ -186,6 +185,8 @@ define(function (require) {
                                         );
                                     }
                                 );
+
+                                d.modExport.init(d.component, me);
                             }
                         );
                     }
