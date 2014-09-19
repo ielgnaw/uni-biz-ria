@@ -48,6 +48,13 @@ define(function (require) {
     DynamicFormModel.prototype.uploadUrl = '';
 
     /**
+     * 主域检查的 url
+     *
+     * @type {string}
+     */
+    DynamicFormModel.prototype.checkDomainUrl = '';
+
+    /**
      * 当前的 nest 对象，这个系统是根据 nestId 来做的
      *
      * @type {Object}
@@ -73,6 +80,7 @@ define(function (require) {
         me.set('formType', me.formType);
         me.set('uploadUrl', me.uploadUrl);
         me.set('submitUrl', me.submitUrl);
+        me.set('checkDomainUrl', me.checkDomainUrl);
 
         // curNest 是在子 Model 类的 prepare 赋值的
         var curNest = me.curNest;

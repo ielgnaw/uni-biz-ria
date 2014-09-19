@@ -32,6 +32,11 @@ define(function (require) {
             defer.resolve(ret);
         }
         else {
+            var model = view.model;
+            var checkDomainUrl = model.get('checkDomainUrl');
+            if (!checkDomainUrl) {
+                return;
+            }
             _.forEach(
                 ajaxValidDoms,
                 function (ajaxValidDom, index) {
