@@ -42,11 +42,10 @@ define(function (require) {
                 function (ajaxValidDom, index) {
                     var dom = $(ajaxValidDom);
                     var esuiDom = view.get(dom.attr('name'));
-                    var validUrl = dom.attr('ajax-valid');
                     $.ajax({
                         type: 'post',
                         dataType: 'json',
-                        url: validUrl,
+                        url: checkDomainUrl,
                         data: {
                             check: esuiDom.getValue()
                         }
