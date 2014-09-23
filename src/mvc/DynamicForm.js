@@ -107,11 +107,20 @@ define(function (require) {
 
                                     var ajaxArgs = {
                                         ideaName: ideaName,
-                                        ideaInfoS: decodeURIComponent(
-                                            // 这里 encodeURIComponent 一下
-                                            // 避免 decodeURIComponent('%') 报错
-                                            encodeURIComponent(uniUtil.stringify(formData))
-                                        )
+                                        ideaInfoS: (function () {
+                                            var s = uniUtil.stringify(formData);
+                                            try {
+                                                s = decodeURIComponent(s);
+                                            }
+                                            catch (e) {}
+                                            return s;
+                                        })()
+                                        // decodeURIComponent(
+                                        //     uniUtil.stringify(formData)
+                                        //     // 这里 encodeURIComponent 一下
+                                        //     // 避免 decodeURIComponent('%') 报错
+                                        //     // encodeURIComponent(uniUtil.stringify(formData))
+                                        // )
                                     };
 
                                     if (params.ideaInfo) {

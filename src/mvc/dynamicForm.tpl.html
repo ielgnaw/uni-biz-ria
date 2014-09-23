@@ -18,7 +18,11 @@
             component-submit-name="${formItem.components.submitName}">
         </div>
     <!-- else -->
-        <div class="form-row">
+        <div class="form-row"
+            <!-- if: ${formItem.properties.hidden} -->
+                style="display:none;"
+            <!-- /if -->
+        >
             <!-- if: ${formItem.title} -->
                 <div class="form-key">${formItem.title}：</div>
             <!-- else -->
@@ -79,7 +83,7 @@
                 </div>
             <!-- else -->
                 <div class="form-value">
-                    <span name="${formItem.id}"
+                    <span id="${formItem.id}" name="${formItem.id}"
                         <!-- if: ${formItem.rules.ajaxValid} -->
                         ajax-valid="${formItem.rules.ajaxValid}"
                         <!-- /if -->
