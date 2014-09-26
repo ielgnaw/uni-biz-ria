@@ -107,14 +107,16 @@ define(function (require) {
 
                                     var ajaxArgs = {
                                         ideaName: ideaName,
-                                        ideaInfoS: (function () {
-                                            var s = uniUtil.stringify(formData);
-                                            try {
-                                                s = decodeURIComponent(s);
-                                            }
-                                            catch (e) {}
-                                            return s;
-                                        })()
+                                        ideaInfoS: uniUtil.stringify(formData)
+                                        // ideaInfoS: (function () {
+                                        //     var s = uniUtil.stringify(formData);
+                                        //     try {
+                                        //         s = decodeURIComponent(s);
+                                        //     }
+                                        //     catch (e) {}
+                                        //     return s;
+                                        // })()
+
                                         // decodeURIComponent(
                                         //     uniUtil.stringify(formData)
                                         //     // 这里 encodeURIComponent 一下
