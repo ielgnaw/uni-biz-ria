@@ -28,33 +28,43 @@ define(function (require) {
         var len = ajaxValidDoms.length;
         var defer = new Deferred();
         var ret = [];
-        if (!len) {
+        var model = view.model;
+        var checkDomainUrl = model.get('checkDomainUrl');
+        if (!len || !checkDomainUrl) {
             defer.resolve(ret);
         }
         else {
-            var model = view.model;
-            var checkDomainUrl = model.get('checkDomainUrl');
-            if (!checkDomainUrl) {
-                return;
-            }
             _.forEach(
                 ajaxValidDoms,
                 function (ajaxValidDom, index) {
                     var dom = $(ajaxValidDom);
                     var esuiDom = view.get(dom.attr('name'));
+                    var domValue = esuiDom.getValue();
                     $.ajax({
                         type: 'post',
                         dataType: 'json',
                         url: checkDomainUrl,
                         data: {
-                            check: esuiDom.getValue()
+                            check: domValue
                         }
                     }).done(
                         function (data) {
-                            ret.push({
-                                data: data,
-                                esuiDom: esuiDom
-                            });
+                            // 当 domValue 不存在时，也需要发这个请求
+                            // 是为了让 defer.resolve 只有这一个出口
+                            if (!domValue) {
+                                ret.push({
+                                    data: {
+                                        status: 0
+                                    },
+                                    esuiDom: esuiDom
+                                });
+                            }
+                            else {
+                                 ret.push({
+                                    data: data,
+                                    esuiDom: esuiDom
+                                });
+                            }
                             if (index === len - 1) {
                                 defer.resolve(ret);
                             }
