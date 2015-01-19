@@ -1,0 +1,38 @@
+<!-- target: dynamicSelect -->
+
+<!-- for: ${renderList} as ${renderData}, ${index} -->
+    <!-- var: isRequired = '' -->
+    <!-- if: ${renderData.required} == '1' -->
+        <!-- var: isRequired = 'data-ui-required=1' -->
+    <!-- /if -->
+    <div class="form-key">${renderData.title}：</div>
+    <div class="form-value">
+        <select class="select" data-ui-id="${renderData.id}"
+            data-ui-type="Select"
+            data-ui-excludeVal="${renderData.excludeVal}"
+            data-ui-title="${renderData.title}"
+            data-ui-width="${renderData.properties.width}"
+            data-ui-disabled="${renderData.properties.disabled}"
+            select-required="<!-- if: ${renderData.required} == '1' -->1<!-- else -->0<!-- /if -->"
+        >
+            <option value="${renderData.excludeVal}">
+                ${renderData.excludeVal}
+            </option>
+            <!-- for: ${renderData.selectData} as ${item} -->
+                <option value="${item.ideaId}"
+                    <!-- if: ${item.selected} == '1' -->
+                        selected="selected"
+                    <!-- /if -->
+                >
+                    ${item.ideaName}
+                </option>
+            <!-- /for -->
+        </select>
+        <label class="component-validity-label"></label>
+        <!-- if: ${isRequired} != '' -->
+        <span class="red">*</span>
+        <span>${i18n.BT}</span>
+        <!-- /if -->
+    </div>
+<!-- /for -->
+

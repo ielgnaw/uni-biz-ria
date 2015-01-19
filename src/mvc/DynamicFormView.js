@@ -5,13 +5,21 @@
 
 define(function (require) {
 
-    require('er/tpl!./dynamicForm.tpl.html');
+    var dynamicAddFormTpl = require('er/tpl!./dynamicForm.tpl.html');
 
+    var $ = require('jquery');
     var _ = require('underscore');
     var util = require('er/util');
+    var etpl = require('etpl');
+    var esui = require('esui');
     var Deferred = require('er/Deferred');
     var FormView = require('./FormView');
     var dynamicUtil = require('./dynamicUtil');
+
+    var LANG_PKG = require('../lang').getLangPkg();
+
+    var etplEngine = new etpl.Engine();
+    etplEngine.compile(dynamicAddFormTpl);
 
     /**
      * 动态 Form View 基类
@@ -37,52 +45,6 @@ define(function (require) {
      */
     DynamicFormView.prototype.errorFunc = function () {};
 
-    // /**
-    //  * 重置表单
-    //  */
-    // function reset() {
-    //     this.fire('reset');
-    // }
-
-    // /**
-    //  * 取消编辑
-    //  */
-    // function cancelEdit() {
-    //     this.fire('cancel');
-    // }
-
-    // /**
-    //  * 提交数据
-    //  */
-    // function submit() {
-    //     this.fire('submit');
-    // }
-
-    /**
-     * 绑定控件事件
-     *
-     * @override
-     */
-    // DynamicFormView.prototype.bindEvents = function () {
-    //     var me = this;
-    //     var form = me.get('form');
-    //     if (form) {
-    //         form.on('submit', submit, me);
-    //     }
-
-    //     var resetButton = me.get('reset');
-    //     if (resetButton) {
-    //         resetButton.on('click', reset, me);
-    //     }
-
-    //     var cancelButton = me.get('cancel');
-    //     if (cancelButton) {
-    //         cancelButton.on('click', cancelEdit, me);
-    //     }
-
-    //     FormView.prototype.bindEvents.apply(me, arguments);
-    // };
-
     /**
      * 容器渲染完毕后做一些准备工作
      * 例如控制元素可见性及绑定事件等DOM操作
@@ -101,7 +63,9 @@ define(function (require) {
             ).then(
                 function (ret) {
                     // 触发 submit 事件的参数
-                    var submitEvtArgs = {};
+                    var submitEvtArgs = {
+                        componentData: {}
+                    };
 
                     var properties = ret.properties;
                     // DynamicFormView.prototype.uiProperties = properties;
@@ -127,75 +91,326 @@ define(function (require) {
 
                     FormView.prototype.enterDocument.apply(me, arguments);
 
-                    // ideaName 不属于动态 form ， 它是一个固定的 formItem
-                    me.initTip(
-                        '该标识只做系统管理使用，与展现无关',
-                        me.get('ideaName')
-                    );
-
-                    // 遍历 properties
-                    // 初始化 formItem 的 tip
-                    // 如果是修改的话，那么设置 Uploader 的值
-                    _.forEach(
-                        properties,
-                        function (property, key) {
-                            if (property.tip) {
-                                me.initTip(
-                                    property.tip,
-                                    me.get(key)
-                                );
-                            }
-
-                            // 说明是 Uploader
-                            if (property.uploaderVal) {
-                                me.get(key).setRawValue(property.uploaderVal);
-                            }
-                        }
-                    );
+                    initTip(me, properties);
 
                     // 对 components 做处理
                     var components = properties.components;
                     if (components.length) {
-                        // var componentData;
-                        Deferred.all(
-                            (function () {
-                                return _.map(
-                                    components,
-                                    function (component, index) {
-                                        return dynamicUtil.loadConfig(
-                                            './component/' + component.type + '/main',
-                                            component
-                                        );
-                                    }
-                                );
-                            })()
-                        ).then(
-                            function (d) {
-                                // componentData = d.modExport.init(d.component, me);
-                                d.modExport.on(
-                                    'formSubmitDataChange',
-                                    function (changedData) {
-                                        // componentData = changedData.curFormData;
-                                        submitEvtArgs = _.extend(
-                                            submitEvtArgs,
-                                            {
-                                                componentData: changedData.curFormData,
-                                                componentCallback: changedData.componentCallback
-                                            }
-                                        );
-                                    }
-                                );
-
-                                d.modExport.init(d.component, me);
-                            }
-                        );
+                        dealComponents(components, submitEvtArgs, me);
                     }
 
-
+                    var dynamicItems = properties.dynamicItems;
+                    if (dynamicItems) {
+                        dealDynamicItems(dynamicItems, me);
+                    }
                 }
             );
         }
     };
+
+    /**
+     * 动态添加表单项的处理
+     *
+     * @param {Object} dynamicItems 要添加的表单项的配置
+     * @param {View} view 当前的 View 对象
+     */
+    function dealDynamicItems(dynamicItems, view) {
+        $('.add-items').each(
+            function (i, v) {
+                v = $(v);
+                var refIdentify = v.data('refIdentify');
+                var maxCount = dynamicItems[refIdentify].maxCount;
+                var candidateAddItemsConfig = dynamicItems[refIdentify].list;
+
+                var alreadyAddItemsConfig = dynamicItems[refIdentify].alreadyAddItemsConfig;
+                var len;
+                if (alreadyAddItemsConfig && (len = alreadyAddItemsConfig.length)) {
+                    v.attr('data-already-addcount', len);
+
+                    for (var j = 0, l = alreadyAddItemsConfig.length; j < l; j++) {
+
+                        var addItemContainer = $('<div class="add-items-container"></div>');
+                        var html = '';
+                        html += etplEngine.render('dynamicForm', {
+                            formItemConfigs: alreadyAddItemsConfig[j],
+                            i18n: {
+                                'QXZ': LANG_PKG.QXZ,
+                                'ZDXZ': LANG_PKG.ZDXZ,
+                                'Ge': LANG_PKG.Ge,
+                                'BT': LANG_PKG.BT
+                            }
+                        });
+
+                        addItemContainer.attr('data-index', alreadyAddItemsConfig[j].index).html(html);
+
+                        v.parents('.form-row').append(addItemContainer);
+
+                        esui.init(
+                            addItemContainer[0],
+                            {
+                                viewContext: view.viewContext
+                            }
+                        );
+                    }
+                }
+
+                var alreadyAddcount = v.attr('data-already-addcount') || 0;
+                alreadyAddcount = parseInt(alreadyAddcount, 10);
+                if (alreadyAddcount >= maxCount) {
+                    v.attr('disabled', 'disabled');
+                }
+                var maxCountArr = [];
+                for (var q = 1; q <= maxCount; q++) {
+                    maxCountArr.push(q);
+                }
+                v.on(
+                    'click',
+                    {
+                        view: view,
+                        itemsConfig: candidateAddItemsConfig,
+                        maxCount: maxCount,
+                        maxCountArr: maxCountArr,
+                        alreadyAddItemsConfig: alreadyAddItemsConfig,
+                        dynamicItems: dynamicItems,
+                        refIdentify: refIdentify
+                    },
+                    addItemFunc
+                );
+                // if (alreadyAddcount < maxCount) {
+                //     var maxCountArr = [];
+                //     for (var q = 1; q <= maxCount; q++) {
+                //         maxCountArr.push(q);
+                //     }
+                //     v.on(
+                //         'click',
+                //         {
+                //             view: view,
+                //             itemsConfig: candidateAddItemsConfig,
+                //             maxCount: maxCount,
+                //             maxCountArr: maxCountArr,
+                //             alreadyAddItemsConfig: alreadyAddItemsConfig,
+                //             dynamicItems: dynamicItems,
+                //             refIdentify: refIdentify
+                //         },
+                //         addItemFunc
+                //     );
+                // }
+                // else {
+                //     v.attr('disabled', 'disabled');
+                // }
+
+                $('.form-data-body').delegate(
+                    '.del-items',
+                    'click',
+                    {
+                        addNode: v,
+                        view: view,
+                        maxCount: maxCount,
+                        refIdentify: refIdentify
+                    },
+                    delItemFunc
+                );
+            }
+        );
+    }
+
+    /**
+     * 删除之前动态添加的 formItem
+     *
+     * @param {jQuery.Element} e jQuery 事件对象
+     */
+    function delItemFunc(e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        var target = $(e.currentTarget);
+
+        var data = e.data;
+        var refIdentify = data.refIdentify;
+
+        if (refIdentify == target.attr('data-ref-identify')) {
+            $(target.parents('.add-items-container')).remove();
+            e.data.view.get(target.attr('data-del-identify')).dispose();
+            // 这个删除按钮对应的添加按钮
+            var addNode = data.addNode;
+            var alreadyAddcount = +addNode.attr('data-already-addcount');
+
+            alreadyAddcount--;
+            addNode.attr('data-already-addcount', alreadyAddcount);
+
+            if (alreadyAddcount >= e.data.maxCount) {
+                addNode.attr('disabled', 'disabled');
+            }
+            else {
+                addNode.removeAttr('disabled');
+            }
+        }
+    }
+
+    /**
+     * 动态添加 formItem
+     *
+     * @param {jQuery.Element} e jQuery 事件对象
+     */
+    function addItemFunc(e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        var target = $(e.currentTarget);
+
+        // 当前添加按钮所在的这一行的 form-row 节点
+        var curFormRowNode = target.parents('.form-row');
+
+        var alreadyAddNode = curFormRowNode.find('.add-items-container');
+        var alreadyIndexArr = [];
+        alreadyAddNode.each(
+            function (i, v) {
+                v = $(v);
+                alreadyIndexArr.push(+v.attr('data-index'));
+            }
+        );
+
+        var maxCountArr = e.data.maxCountArr;
+        var differenceArr = _.difference(maxCountArr, alreadyIndexArr).sort();
+
+        var alreadyAddcount = +target.attr('data-already-addcount') || 0;
+        alreadyAddcount++;
+
+        var flag = 0;
+        if (!_.contains(differenceArr, alreadyAddcount)) {
+            flag = alreadyAddcount;
+            alreadyAddcount = differenceArr[0];
+        }
+
+        // 要添加的表单项的配置
+        var itemsConfig = $.extend(true, [], e.data.itemsConfig);
+        for (var i = 0, l = itemsConfig.length; i < l; i++) {
+            itemsConfig[i].id += alreadyAddcount;
+            itemsConfig[i].title += alreadyAddcount;
+            itemsConfig[i].properties.value = '';
+        }
+
+        // 设置删除按钮，只需要在添加出来的一组元素的第一个设置
+        // 如果添加的多行元素，在每一行添加的元素后面加上删除按钮是不合理的
+        itemsConfig[0].properties.delItems = e.data.refIdentify;
+
+        itemsConfig[0].properties.delIdentify = itemsConfig[0].id;
+
+        var addItemContainer = $('<div class="add-items-container"></div>');
+        var html = '';
+        html += etplEngine.render('dynamicForm', {
+            formItemConfigs: itemsConfig,
+            i18n: {
+                'QXZ': LANG_PKG.QXZ,
+                'ZDXZ': LANG_PKG.ZDXZ,
+                'Ge': LANG_PKG.Ge,
+                'BT': LANG_PKG.BT
+            }
+        });
+
+        addItemContainer.attr('data-index', alreadyAddcount).html(html);
+
+        curFormRowNode.append(addItemContainer);
+
+        esui.init(
+            addItemContainer[0],
+            {
+                viewContext: e.data.view.viewContext
+            }
+        );
+        // debugger
+        target.attr('data-already-addcount', flag ? flag : alreadyAddcount);
+
+        var maxCount = e.data.maxCount;
+
+        if (+target.attr('data-already-addcount') >= maxCount) {
+            target.attr('disabled', 'disabled');
+        }
+    }
+
+    /**
+     * 对 components 的处理
+     *
+     * @param {Array} components component 集合
+     * @param {Object} submitEvtArgs form 提交时的参数，需要在 component 的值改变后修改参数中的值
+     * @param {View} view 当前 View 对象
+     */
+    function dealComponents(components, submitEvtArgs, view) {
+        Deferred.all(
+            (function () {
+                return _.map(
+                    components,
+                    function (component, index) {
+                        return dynamicUtil.loadConfig(
+                            './component/' + component.type + '/main',
+                            component
+                        );
+                    }
+                );
+            })()
+        ).then(
+            function (d) {
+                var args = Array.prototype.slice.call(arguments);
+                var componentDataTmp = {};
+                var componentCallbackTmp = {};
+                /* jshint loopfunc:true */
+                for (var i = 0, len = args.length; i < len; i++) {
+                    args[i].modExport.on(
+                        args[i].component.submitName + 'formSubmitDataChange',
+                        function (changedData) {
+                            // debugger
+                            componentDataTmp[changedData.curFormData.submitName] =
+                                changedData.curFormData;
+                            componentCallbackTmp[changedData.curFormData.submitName] =
+                                changedData.componentCallback;
+                            submitEvtArgs = _.extend(
+                                submitEvtArgs,
+                                {
+                                    componentData: componentDataTmp,
+                                    componentCallback: componentCallbackTmp
+                                }
+                            );
+                        }
+                    );
+                    args[i].modExport.init(args[i].component, view);
+                }
+            }
+        );
+    }
+
+    /**
+     * 设置 formItem 的 tip
+     *
+     * @param {View} view 当前的 View 对象
+     * @param {Object} properties 每一个 formItem 的配置属性对象
+     */
+    function initTip(view, properties) {
+        // 设置 ideaName 的 tip，ideaName 不属于动态 form，它是一个固定的 formItem
+        view.initTip(
+            LANG_PKG.YZXWG,
+            view.get('ideaName')
+        );
+
+        // 遍历 properties
+        // 初始化 formItem 的 tip
+        // 如果是修改的话，那么设置 Uploader 的值
+        _.forEach(
+            properties,
+            function (property, key) {
+                if (property.tip) {
+                    view.initTip(
+                        property.tip,
+                        view.get(key)
+                    );
+                }
+
+                // 说明是 Uploader
+                if (property.uploaderVal) {
+                    view.get(key).setRawValue(property.uploaderVal);
+                }
+            }
+        );
+    }
 
     /**
      * 根据 formItemConfigs 配置获取 properties ，便于之后渲染 esui 控件
@@ -211,6 +426,7 @@ define(function (require) {
         var len = formItemConfigs.length;
         var ret = {};
         ret.components = [];
+        ret.dynamicItems = {};
         _.forEach(
             formItemConfigs,
             function (formItemConfig, index) {
@@ -235,16 +451,49 @@ define(function (require) {
                             };
                         }
                     }
+
+                    var subItems = properties.subItems;
+                    // 存在 subItems，即当前这个 formItemConfig.id 的 formItem 后面有添加按钮
+                    // 添加按钮添加的元素配置就是 subItems.list 里的配置
+                    // 把 subItems 直接挂在 properties.dynamicItems 上，便于之后操作
+                    if (subItems) {
+                        ret.dynamicItems[formItemConfig.id] = subItems;
+
+                        // console.log(model.get('alreadyAddItemsConfigNew'));
+                        // console.log(model.get('alreadyAddItemsConfig'));
+                        // console.log(formItemConfig.id);
+
+                        // var alreadyAddItemsConfig = model.get('alreadyAddItemsConfig');
+                        // if (alreadyAddItemsConfig) {
+                        //     ret.dynamicItems[formItemConfig.id].alreadyAddItemsConfig = alreadyAddItemsConfig;
+                        // }
+
+                        var alreadyAddItemsConfigNew = model.get('alreadyAddItemsConfigNew');
+                        if (alreadyAddItemsConfigNew) {
+                            for (var i = 0, l = alreadyAddItemsConfigNew.length; i < l; i++) {
+                                if (formItemConfig.id == alreadyAddItemsConfigNew[i].refId) {
+                                    var curAlreadyAddItemsConfig = alreadyAddItemsConfigNew[i].alreadyAddItemsConfig;
+                                    if (curAlreadyAddItemsConfig && curAlreadyAddItemsConfig.length) {
+                                        ret.dynamicItems[formItemConfig.id].alreadyAddItemsConfig = curAlreadyAddItemsConfig;
+                                    }
+                                }
+                            }
+                            // ret.dynamicItems[formItemConfig.id].alreadyAddItemsConfig = alreadyAddItemsConfig;
+                        }
+                    }
+
                 }
 
-                if (formItemConfig.components) {
-                    ret.components.push(formItemConfig.components);
-                }
+                var components = formItemConfig.components;
 
-                // // 把要动态添加的元素设置到 model 中，便于在 action 中获取
-                // if (formItemConfig.type === 'createFormItemsBtn') {
-                //     model.set('addElems', formItemConfig.elems);
-                // }
+                if (components) {
+                    if (!_.isArray(components)) {
+                        ret.components.push(components);
+                    }
+                    else {
+                        Array.prototype.push.apply(ret.components, components);
+                    }
+                }
 
                 if (index === len - 1) {
                     defer.resolve({

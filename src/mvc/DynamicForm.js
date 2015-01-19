@@ -8,9 +8,11 @@ define(function (require) {
     var Action = require('er/Action');
     var util = require('er/util');
     var Dialog = require('esui/Dialog');
+
     var ejson = require('../io/ejson');
     var uniUtil = require('../util');
     var dynamicUtil = require('./dynamicUtil');
+    var LANG_PKG = require('../lang').getLangPkg();
 
     /**
      * 动态 Form Action 基类
@@ -42,10 +44,10 @@ define(function (require) {
         var confirmMsg;
 
         if (formType === 'create') {
-            confirmMsg = '确认添加创意？';
+            confirmMsg = LANG_PKG.QRTJCY;
         }
         else {
-            confirmMsg = '确认修改创意？';
+            confirmMsg = LANG_PKG.RQXGCY;
         }
 
         var successFunc =
@@ -78,14 +80,15 @@ define(function (require) {
                             if (!dynamicUtil.validCheckbox()
                                 || !dynamicUtil.validSelect(view)
                                 || !dynamicUtil.validTextBox(view)
+                                || !dynamicUtil.validCascadeRequired(view)
                             ) {
                                 return;
                             }
 
                             Dialog.confirm({
-                                title: '确认',
+                                title: LANG_PKG.QR,
                                 content: confirmMsg,
-                                width: 400,
+                                width: 300,
                                 skin: 'exconfirm'
                             }).on(
                                 'ok',
@@ -97,32 +100,21 @@ define(function (require) {
                                     delete formData.ideaName;
 
                                     var componentData = params.componentData;
-                                    if (componentData) {
-                                        var componentCallback = params.componentCallback;
-                                        componentCallback
-                                            && typeof componentCallback === 'function'
-                                            && (componentData = componentCallback.call());
-                                        formData[componentData.submitName] = componentData.dataList;
+                                    // debugger
+                                    for (var i in componentData) {
+                                        var componentCallback = params.componentCallback[i];
+                                        if (componentCallback && typeof componentCallback === 'function') {
+                                            var c = componentCallback.call(null, componentData[i]);
+                                            formData[c.submitName] = c.dataList;
+                                        }
+                                        else {
+                                            formData[componentData.submitName] = componentData.dataList;
+                                        }
                                     }
 
                                     var ajaxArgs = {
                                         ideaName: ideaName,
                                         ideaInfoS: uniUtil.stringify(formData)
-                                        // ideaInfoS: (function () {
-                                        //     var s = uniUtil.stringify(formData);
-                                        //     try {
-                                        //         s = decodeURIComponent(s);
-                                        //     }
-                                        //     catch (e) {}
-                                        //     return s;
-                                        // })()
-
-                                        // decodeURIComponent(
-                                        //     uniUtil.stringify(formData)
-                                        //     // 这里 encodeURIComponent 一下
-                                        //     // 避免 decodeURIComponent('%') 报错
-                                        //     // encodeURIComponent(uniUtil.stringify(formData))
-                                        // )
                                     };
 
                                     if (params.ideaInfo) {

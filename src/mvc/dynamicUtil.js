@@ -13,6 +13,9 @@ define(function (require) {
     var _ = require('underscore');
     var Deferred = require('er/Deferred');
     var Dialog = require('esui/Dialog');
+    var uniUtil = require('../util');
+
+    var LANG_PKG = require('../lang').getLangPkg();
 
     var dynamicUtil = {};
 
@@ -97,7 +100,7 @@ define(function (require) {
                     Dialog.alert({
                         content: checkboxContainer[i].getAttribute(
                             'boxgroup-required-error-message'
-                        ) || '请选择多选框'
+                        ) || LANG_PKG.QXZDXK
                     });
                     ret = false;
                     break;
@@ -115,7 +118,7 @@ define(function (require) {
                         Dialog.alert({
                             content: checkboxContainer[i].getAttribute(
                                 'boxgroup-max-selected-count-error-message'
-                            ) || '选择的个数超过最大个数'
+                            ) || LANG_PKG.GSCG
                         });
                         ret = false;
                         break;
@@ -137,21 +140,21 @@ define(function (require) {
     dynamicUtil.validSelect = function (view) {
         var ret = true;
 
-        var selectDoms = $('[data-ui-type="Select"]');
-        for (var i = 0, len = selectDoms.length; i < len; i++) {
-            var curDom = $(selectDoms[i]);
-            if (curDom.attr('data-ui-required') == '1') {
-                var esuiKey = curDom.attr('data-ui-name')
+        var candidateSelectDoms = $('[select-required="1"]');
+        for (var i = 0, len = candidateSelectDoms.length; i < len; i++) {
+            var curDom = $(candidateSelectDoms[i]);
+            var esuiKey = curDom.attr('data-ui-name')
                     || curDom.attr('data-ui-id');
-                var esuiDom = view.get(esuiKey);
-                var excludeVal = curDom.attr('data-ui-excludeVal');
-                if (esuiDom.getValue() == excludeVal) {
-                    Dialog.alert({
-                        content: '请选择' + (esuiDom.get('title') || '')
-                    });
-                    ret = false;
-                    break;
-                }
+            var esuiDom = view.get(esuiKey);
+            var excludeVal = curDom.attr('data-ui-excludeVal');
+            var selectItemText = esuiDom.getSelectedItem().name;
+
+            if (selectItemText == excludeVal || esuiDom.getValue() == excludeVal) {
+                Dialog.alert({
+                    content: LANG_PKG.QXZ + (esuiDom.get('title') || '')
+                });
+                ret = false;
+                break;
             }
         }
         return ret;
@@ -184,7 +187,56 @@ define(function (require) {
                     var esuiDom = view.get(esuiKey);
                     if (!esuiDom.getValue()) {
                         Dialog.alert({
-                            content: '请填写' + (esuiDom.get('title') || '机构地址')
+                            content: LANG_PKG.QTX + (esuiDom.get('title') || LANG_PKG.JGDZ)
+                        });
+                        ret = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return ret;
+    };
+
+
+    /**
+     * 验证 form 中配置的 rules.cascadeRequired 是否填写
+     * 当前 node 填写后，如果配置了 rules.cascadeRequired ，
+     * 那么需要验证 rules.cascadeRequired 里的 node 节点是否填写
+     *
+     * @param {er.View} view 当前 View
+     *
+     * @return {boolean}
+     */
+    dynamicUtil.validCascadeRequired = function (view) {
+        var ret = true;
+
+        var candidates = {};
+
+        var cascadeDoms = $('[cascade-required]');
+        for (var i = 0, len = cascadeDoms.length; i < len; i++) {
+            var curDom = $(cascadeDoms[i]);
+            var cascadeVal = curDom.attr('cascade-required');
+            var esuiKey = curDom.attr('id') || curDom.attr('name');
+            var esuiDom = view.get(esuiKey);
+            var val = uniUtil.trim(esuiDom.getValue());
+            if (val && cascadeVal) {
+                var cascadeArr = cascadeVal.split(',');
+                while (cascadeArr.length) {
+                    var c = cascadeArr.shift();
+                    candidates[c] = 1;
+                }
+            }
+        }
+
+        for (var i in candidates) {
+            if (candidates.hasOwnProperty(i)) {
+                var candidate = view.get(i);
+                if (candidate) {
+                    if (!uniUtil.trim(candidate.getValue())) {
+                        Dialog.alert({
+                            content: LANG_PKG.QTX + (candidate.get('title'))
                         });
                         ret = false;
                         break;

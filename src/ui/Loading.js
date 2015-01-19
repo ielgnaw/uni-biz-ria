@@ -4,7 +4,10 @@
  */
 
 define(function (require) {
+
     var _ = require('underscore');
+
+    var LANG_PKG = require('../lang').getLangPkg();
 
     var globalLoading;
     var loadingCount = 0;
@@ -39,7 +42,7 @@ define(function (require) {
         }
 
         var properties = {
-            content: content || '正在读取数据，请稍候...',
+            content: content || LANG_PKG.ZZDQ,
             status: undefined
         };
         properties = _.extend(properties, options);

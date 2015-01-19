@@ -218,7 +218,7 @@ define(function (require) {
      */
     util.getQueryValue = function (url, key) {
         var reg = new RegExp(
-            '(^|&|\\?|#)' + util.escapeReg(key) + '=([^&#]*)(&|\x24|#)',
+            '(^|&|\\?|#|~)' + util.escapeReg(key) + '=([^&#]*)(&|\x24|#)',
             ''
         );
         var match = url.match(reg);
@@ -300,6 +300,62 @@ define(function (require) {
         );
 
         return result.join('&');
+    };
+
+    /**
+     * 将 URL 参数转化成 json 对象
+     *
+     * @param {string} str 待转化的 url 参数字符串
+     * @param {boolean} isDecode 是否编码
+     *
+     * @return {Object} 结果对象
+     */
+    util.queryToJson = function (str, isDecode) {
+        var me = this;
+        /**
+         * decode 字符
+         *
+         * @param {string} data 待 decode 的字符串
+         *
+         * @return {string} decode 后的结果
+         */
+        function _decodeData(str) {
+            if (isDecode) {
+                return decodeURIComponent(str);
+            }
+            else {
+                return str;
+            }
+        }
+
+        var ret = {};
+        var segments = me.trim(str).split('&');
+        if (segments && segments.length) {
+            for (var i = 0, len = segments.length; i < len; i++) {
+                if (segments[i]) {
+                    var hash = segments[i].split('=');
+                    var key = hash[0];
+                    var value = hash[1];
+                    // 如果只有 key 没有 value , 那么将全部丢入一个 $nullValue 数组中
+                    if (hash.length < 2) {
+                        value = key;
+                        key = '$nullValue';
+                    }
+                    // 如果缓存堆栈中没有这个数据
+                    if (!ret[key]) {
+                        ret[key] = _decodeData(value);
+                    }
+                    // 如果堆栈中已经存在这个数据，则转换成数组存储
+                    else {
+                        if (!util.isArray(ret[key])) {
+                            ret[key] = [ret[key]];
+                        }
+                        ret[key].push(_decodeData(value));
+                    }
+                }
+            }
+        }
+        return ret;
     };
 
     /**
@@ -402,6 +458,49 @@ define(function (require) {
     };
 
     /**
+     * 获取当前光标在文本框或者文本域中的位置
+     *
+     * @param  {HTML Element} dom input 或者 textarea 元素
+     *
+     * @return {number}     光标位置
+     */
+    util.getCursorPos = function (dom) {
+        var caretPos = 0;
+        var selection = document.selection;
+        if (selection) {
+            dom.focus();
+            var sel = selection.createRange();
+            sel.moveStart('character', -dom.value.length);
+            caretPos = sel.text.length;
+        }
+        else if (dom.selectionStart || dom.selectionStart === 0) {
+            caretPos = dom.selectionStart;
+        }
+
+        return caretPos;
+    };
+
+    /**
+     * 设置光标位置
+     *
+     * @param {HTML Element} dom input 或者 textarea 元素
+     * @param {number} pos 要设置的位置
+     */
+    util.setCursorPos = function (dom, pos) {
+        if (dom.setSelectionRange) {
+            dom.focus();
+            dom.setSelectionRange(pos, pos);
+        }
+        else if (dom.createTextRange) {
+            var range = dom.createTextRange();
+            range.collapse(true);
+            range.moveEnd('character', pos);
+            range.moveStart('character', pos);
+            range.select();
+        }
+    };
+
+    /**
      * 删除目标字符串两端的空白字符
      *
      * @param {string} source 目标字符串
@@ -414,6 +513,54 @@ define(function (require) {
 
         return String(source).replace(WHITESPACE, '');
     };
+
+    /**
+     * 根据 name 获取 cookie
+     *
+     * @param {string} name key
+     *
+     * @return {string} 对应的 cookie 值
+     */
+    util.getCookie = function (name) {
+        var strCookie = document.cookie;
+        var arrCookie = strCookie.split('; ');
+        for (var i = 0; i < arrCookie.length; i++) {
+            var arr = arrCookie[i].split('=');
+            if(arr[0] === name) {
+                return arr[1];
+            }
+        }
+        return '';
+    };
+
+    /**
+     * 设置 cookie
+     *
+     * @param {string} name cookie 名字
+     * @param {string} value cookie 值
+     * @param {number} expiresHours 过期时间，小时
+     */
+    util.addCookie = function (name, value, expiresHours) {
+        var cookieStr = name + '=' + escape(value);
+        if (expiresHours > 0) {
+            var date = new Date();
+            date.setTime(date.getTime() + expiresHours * 3600 * 1000);
+            cookieStr =
+                cookieStr
+                + '; expires='
+                + date.toGMTString();
+        }
+        cookieStr = cookieStr + '; domain=.baidu.com; path=/';
+        document.cookie = cookieStr;
+    };
+
+    /**
+     * 空函数
+     *
+     * @property
+     * @type {Function}
+     */
+    util.noop = function () {};
 
     return util;
 

@@ -5,9 +5,14 @@
 
 define(function (require) {
 
+    var $ = require('jquery');
+    var _ = require('underscore');
+
     var UIModel = require('ef/UIModel');
     var util = require('er/util');
     var uniUtil = require('../util');
+
+    var LANG_PKG = require('../lang').getLangPkg();
 
     /**
      * 默认的 form 类型
@@ -90,6 +95,18 @@ define(function (require) {
 
         var formItemConfigs = uniUtil.parseJson(curNest.nestForm) || [];
 
+        transformFormConfigLang(formItemConfigs);
+
+        for (var i = 0, len = formItemConfigs.length; i < len; i++) {
+            var formItem = formItemConfigs[i];
+            var components = formItem.components;
+            if (components) {
+                if (!_.isArray(components)) {
+                    formItem.components = [components];
+                }
+            }
+        }
+
         me.set('curNest', curNest);
         me.set('nestId', curNest.nestId);
         me.set('formItemConfigs', formItemConfigs);
@@ -125,21 +142,34 @@ define(function (require) {
                 ? uniUtil.parseJson(ideaInfo.ideaInfoS)
                 : '';
 
+            var alreadyAddItemsConfigNew = [];
+
             for (var i = 0, len = formItemConfigs.length; i < len; i++) {
-                var formItem = formItemConfigs[i];
+                var formItemConfig = formItemConfigs[i];
 
                 if (auditStatusFlag) {
-                    formItem.properties
-                            && (formItem.properties.disabled = 1);
+                    formItemConfig.properties
+                            && (formItemConfig.properties.disabled = 1);
                 }
 
                 // 回填自定义组件的值
-                if (formItem.components) {
-                    var submitName = formItem.components.submitName;
-                    formItem.components.data = formData[submitName];
+                var components = formItemConfig.components;
+                if (components) {
+                    if (!_.isArray(components)) {
+                        formItemConfig.components = [components];
+                        formItemConfig.components.data =
+                            formData[formItemConfig.components.submitName];
+                    }
+                    else {
+                        /* jshint maxdepth: 6 */
+                        for (var j = 0, componentsLen = components.length; j < componentsLen; j++) {
+                            formItemConfig.components[j].data =
+                                formData[formItemConfig.components[j].submitName];
+                        }
+                    }
                 }
 
-                var key = formItem.id;
+                var key = formItemConfig.id;
                 var value = formData[key];
 
                 me.set(key, value);
@@ -149,30 +179,189 @@ define(function (require) {
                     // BoxGroup 时用 checked 标识
                     // Select 时用 selected 标识
                     var sc = '';
-                    if (formItem.type === 'BoxGroup') {
+                    if (formItemConfig.type === 'BoxGroup') {
                         sc = 'checked';
                     }
-                    else if (formItem.type === 'Select') {
+                    else if (formItemConfig.type === 'Select') {
                         sc = 'selected';
                     }
 
                     // 这里判断是为了让非 BoxGroup ， Select 的控件不走下面循环的逻辑
                     if (sc) {
-                        for (var j = 0, jLen = formItem.list.length; j < jLen; j++) {
-                            if (value.indexOf(formItem.list[j].value) >= 0) {
-                                formItem.list[j][sc] = 1;
+                        for (var j = 0, jLen = formItemConfig.list.length; j < jLen; j++) {
+                            if (value.indexOf(formItemConfig.list[j].value) >= 0) {
+                                formItemConfig.list[j][sc] = 1;
                             }
                             else {
-                                delete formItem.list[j][sc];
+                                delete formItemConfig.list[j][sc];
                             }
                         }
                     }
                 }
+
+                var properties = formItemConfig.properties;
+                if (properties) {
+                    var subItems = formItemConfig.properties.subItems;
+                    if (subItems) {
+                        alreadyAddItemsConfigNew.push({
+                            refId: formItemConfig.id,
+                            alreadyAddItemsConfig: dealSubItems(formItemConfig.id, subItems, formData, me)
+                        })
+                    }
+                }
             }
+
+            me.set('alreadyAddItemsConfigNew', alreadyAddItemsConfigNew);
         }
+
+        // 这里设置 dynamicForm.tpl.html 中的文案
+        var i18n = $.extend(
+            true,
+            {},
+            me.get('i18n'),
+            {
+                'GLBS': LANG_PKG.GLBS,
+                'GLBS1': LANG_PKG.GLBS1,
+                'ZD30GZF': LANG_PKG.ZD30GZF,
+                'BT': LANG_PKG.BT,
+                'QX': LANG_PKG.QX,
+                'BC': LANG_PKG.BC,
+                'FH': LANG_PKG.FH,
+                'YJSHBNXG': LANG_PKG.YJSHBNXG,
+                'QXZ': LANG_PKG.QXZ,
+                'ZDXZ': LANG_PKG.ZDXZ,
+                'Ge': LANG_PKG.Ge,
+                'JGJCXX': LANG_PKG.JGJCXX
+            }
+        );
+
+        me.set('i18n', i18n);
 
         UIModel.prototype.prepare.apply(me, arguments);
     };
+
+    function dealSubItems(refIdentify, subItemsConfig, data, model) {
+        var list = subItemsConfig.list;
+        var dataKeys = _.keys(data);
+        var ret = [];
+        var t = [];
+        // debugger
+        for (var j = 0, len = dataKeys.length; j < len; j++) {
+            for (var i = 0, l = list.length; i < l; i++) {
+                var cloneObj = $.extend(true, {}, list[i]);
+                if (new RegExp('^' + cloneObj.id + '(\\d*)$').test(dataKeys[j])) {
+                    cloneObj.id += RegExp.$1;
+                    cloneObj.title += RegExp.$1;
+
+                    var value = data[dataKeys[j]];
+
+                    // 标识控件是否选中
+                    // BoxGroup 时用 checked 标识
+                    // Select 时用 selected 标识
+                    var sc = '';
+                    if (cloneObj.type === 'BoxGroup') {
+                        sc = 'checked';
+                    }
+                    else if (cloneObj.type === 'Select') {
+                        sc = 'selected';
+                    }
+
+                    // 这里判断是为了让非 BoxGroup ， Select 的控件不走下面循环的逻辑
+                    if (sc) {
+                        for (var m = 0, jLen = cloneObj.list.length; m < jLen; m++) {
+                            if (value.indexOf(cloneObj.list[m].value) >= 0) {
+                                cloneObj.list[m][sc] = 1;
+                            }
+                            else {
+                                delete cloneObj.list[m][sc];
+                            }
+                        }
+                    }
+                    else {
+                        cloneObj.properties.value = value;
+                    }
+
+                    t.push(cloneObj);
+                    if (i === 0) {
+                        cloneObj.properties.delItems = refIdentify;
+                        cloneObj.properties.delIdentify = cloneObj.id;
+                    }
+                    if (i === l - 1) {
+                        t.index = RegExp.$1;
+                        ret.push(t);
+                        t = [];
+                    }
+                }
+            }
+        }
+        model.set('alreadyAddItemsConfig', ret);
+        return ret;
+    }
+
+    /**
+     * 替换 form 配置中的语言包
+     * 如果在语言包中没有找到对应的语言，则使用 form 配置中原有的，不进行替换
+     *
+     * @param {Array|Object|string|number} formConfigs form 配置
+     *
+     * @return {Array} 替换语言包后的 form 配置
+     */
+    function transformFormConfigLang(formConfigs) {
+        for (var i = 0, len = formConfigs.length; i < len; i++) {
+            var formConfig = formConfigs[i];
+            if ($.isArray(formConfig)) {
+                dealArray(formConfig);
+            }
+            else if ($.isPlainObject(formConfig)) {
+                dealObject(formConfig);
+            }
+            else {
+                formConfig = LANG_PKG[formConfig] || formConfig;
+            }
+        }
+    }
+
+    /**
+     * 对 formConfig 中的对象值进行语言替换的处理
+     *
+     * @param {Object} obj 对象值
+     */
+    function dealObject(obj) {
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                if ($.isArray(obj[i])) {
+                    dealArray(obj[i]);
+                }
+                else if ($.isPlainObject(obj[i])) {
+                    dealObject(obj[i]);
+                }
+                else {
+                    if (i !== 'value') {
+                        obj[i] = LANG_PKG[obj[i]] || obj[i];
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 对 formConfig 中的数组值进行语言替换的处理
+     *
+     * @param {Object} arr 数组值
+     */
+    function dealArray(arr) {
+        for (var i = 0, len = arr.length; i < len; i++) {
+            if ($.isArray(arr[i])) {
+                dealArray(arr[i]);
+            }
+            else if ($.isPlainObject(arr[i])) {
+                dealObject(arr[i]);
+            }
+            else {
+                arr[i] = LANG_PKG[arr[i]] || arr[i];
+            }
+        }
+    }
 
     util.inherits(DynamicFormModel, UIModel);
 

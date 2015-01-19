@@ -7,7 +7,7 @@ define(function (require) {
 
     var Deferred = require('er/Deferred');
     var util = require('er/util');
-    var shim = require('./shim');
+    var uniUtil = require('../util');
 
     function jsonpErrorHanlder(deferred, error) {
         deferred.reject(error);
@@ -43,7 +43,7 @@ define(function (require) {
             var name = 'zq_jsonp_' + new Date().getTime().toString(36);
 
             url += url.indexOf('?') > 0 ? '&' : '?';
-            url += shim.jsonToQuery(data);
+            url += uniUtil.jsonToQuery(data);
             url += '&' + callback + '=' + name;
 
             var script = document.createElement('script');

@@ -1,0 +1,158 @@
+@import './mvc/component/select-addr/main.less';
+@import './ui/css/Loading.less';
+@import './ui/css/Uploader.less';
+
+.red {
+    color: #f00;
+}
+
+.form-tips {
+    background-color: #F1F6FC;
+    border: 1px solid #BAD5F1;
+    line-height: 24px;
+    margin: 0 0 0 10px;
+    .border-radius(3px);
+}
+
+.create-idea-form {
+    margin: 0 0 0 10px;
+
+    .form-item-split {
+        position: relative;
+        padding-top: 15px;
+        margin: 15px 0 0 0;
+        .border-radius(5px);
+
+        &:after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            padding: 7px 7px;
+            font-weight: bold;
+            margin-left: 45px;
+            border-top: 1px solid #ddd;
+            width: 92%;
+        }
+
+    }
+
+    .form-title-bar {
+        height: 15px;
+        line-height: 15px;
+        padding: 7px 10px;
+        font-weight: bold;
+        color: #333333;
+        border: 1px solid #BAD5F1;
+        background-color: #F1F6FC;
+        position: relative;
+        margin-top: 15px;
+    }
+    .form-data-body {
+        padding: 10px 0;
+        margin-top: 15px;
+        border: 1px solid #BAD5F1;
+        // border-top: none;
+        background-image: -webkit-gradient(linear, 0 0, 0 2, from(#ececec), to(#fff));
+        background-image: -moz-linear-gradient(top, #ececec, #fff 2px, #fff);
+    }
+
+    .form-row {
+        padding: 2px 0;
+    }
+
+    .form-key,
+    .form-value {
+        line-height: 24px;
+    }
+
+    .form-row:after,
+    .form-value:after {
+        content: '\0020';
+        display: block;
+        height: 0;
+        visibility: hidden;
+        clear: both;
+    }
+
+    .form-value {
+        width: auto;
+        padding: 2px;
+        .select {
+            display: inline-block;
+            vertical-align: bottom;
+        }
+    }
+
+    .form-key {
+        float: left;
+        padding: 2px 3px 3px 0;
+        width: 110px;
+        color: #666666;
+        // padding-left: 10px;
+        text-align: right;
+    }
+
+    .form-submit-body {
+        // margin-left: 15px;
+        // margin-bottom: 10px;
+        margin-top: 10px;
+        .operate-conatiner {
+            display: inline-block;
+            margin-left: 30px;
+            .hide {
+                display: none;
+            }
+        }
+    }
+
+    .form-submit-button {
+        width: 50px;
+    }
+
+    .form-close {
+        margin-top: 2px;
+    }
+
+    .form-row-hidden {
+        height: 0;
+        padding: 0;
+        margin: 0;
+    }
+}
+
+
+
+
+
+
+
+// ==============================================
+// common uploader style
+// ==============================================
+.upload-row {
+    margin-bottom: 5px;
+}
+
+.upload-row:after,
+.upload-row:after {
+    content:"\0020";
+    display:block;
+    height:0;
+    visibility:hidden;
+    clear:both;
+}
+
+.ui-uploader {
+    float: left;
+}
+
+.uploadFileName {
+    margin-left: 10px;
+    float: left;
+    color: #666;
+}
+
+.img-preview {
+    margin-left: 110px;
+}

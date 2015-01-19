@@ -76,7 +76,8 @@ define(function (require) {
                     changeProv,
                     {
                         view: view,
-                        index: component.index
+                        index: component.index,
+                        formSubmitData: formSubmitData
                     }
                 )
             );
@@ -93,7 +94,8 @@ define(function (require) {
                     changeCity,
                     {
                         view: view,
-                        index: component.index
+                        index: component.index,
+                        formSubmitData: formSubmitData
                     }
                 )
             );
@@ -107,7 +109,8 @@ define(function (require) {
                     changeAddr,
                     {
                         view: view,
-                        index: component.index
+                        index: component.index,
+                        formSubmitData: formSubmitData
                     }
                 )
             );
@@ -122,7 +125,7 @@ define(function (require) {
         // 初始化的时候也需要 fire
         // 因为可能编辑 form 的时候，不改动这个组件的值
         exports.fire(
-            'formSubmitDataChange',
+            formSubmitData.submitName + 'formSubmitDataChange',
             {
                 curFormData: formSubmitData,
                 componentCallback: submitDataFilter
@@ -143,13 +146,13 @@ define(function (require) {
         var cityList = city.getCityByProvince(provVal);
         me.view.get('city' + me.index).updateDatasource(cityList);
 
-        formSubmitData.dataList[me.index - 1].prov = provVal;
-        formSubmitData.dataList[me.index - 1].city = me.view.get('city' + me.index).getValue();
+        me.formSubmitData.dataList[me.index - 1].prov = provVal;
+        me.formSubmitData.dataList[me.index - 1].city = me.view.get('city' + me.index).getValue();
 
         // submitDataFilter(formSubmitData);
 
         exports.fire(
-            'formSubmitDataChange',
+            me.formSubmitData.submitName + 'formSubmitDataChange',
             {
                 curFormData: formSubmitData,
                 componentCallback: submitDataFilter
@@ -165,9 +168,9 @@ define(function (require) {
     function changeCity(e) {
         var me = this;
         var cityVal = e.target.getValue();
-        formSubmitData.dataList[me.index - 1].city = cityVal;
+        me.formSubmitData.dataList[me.index - 1].city = cityVal;
         exports.fire(
-            'formSubmitDataChange',
+            me.formSubmitData.submitName + 'formSubmitDataChange',
             {
                 curFormData: formSubmitData,
                 componentCallback: submitDataFilter
@@ -183,9 +186,9 @@ define(function (require) {
     function changeAddr(e) {
         var me = this;
         var cityVal = e.target.getValue();
-        formSubmitData.dataList[me.index - 1].addr = cityVal;
+        me.formSubmitData.dataList[me.index - 1].addr = cityVal;
         exports.fire(
-            'formSubmitDataChange',
+            me.formSubmitData.submitName + 'formSubmitDataChange',
             {
                 curFormData: formSubmitData,
                 componentCallback: submitDataFilter
@@ -202,13 +205,13 @@ define(function (require) {
      * }
      * 即去掉默认的值，避免默认的值被提交
      */
-    function submitDataFilter() {
+    function submitDataFilter(curFormData) {
         var ret = {
-            submitName: formSubmitData.submitName,
+            submitName: curFormData.submitName,
             dataList: []
         };
-        for (var i = 0, len = formSubmitData.dataList.length; i < len; i++) {
-            var d = formSubmitData.dataList[i];
+        for (var i = 0, len = curFormData.dataList.length; i < len; i++) {
+            var d = curFormData.dataList[i];
             if (d.addr || d.city !== '请选择城市' || d.prov !== '请选择省份') {
                 ret.dataList.push(d);
             }

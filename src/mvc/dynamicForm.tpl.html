@@ -1,22 +1,16 @@
 <!-- target: dynamicForm -->
 <!-- var: formType = ${formType} || 'create' -->
 
-<!-- 当前的表单类型为： ${formType} -->
-
 <!-- for: ${formItemConfigs} as ${formItem} -->
     <!-- if: ${formItem.type} == 'formSpliter' -->
         <div class="form-item-split">
         </div>
-    <!-- elif: ${formItem.type} == 'createFormItemsBtn' -->
-        <!-- var: hasCreateFormItemsBtn = 'showFormItemsBtn' -->
-        <!-- var: dataIndex = ${formItem.dataIndex} -->
-        <!-- var: originalDataIndex = ${formItem.dataIndex} -->
-        <!-- var: title = ${formItem.title} -->
-        <!-- var: delTitle = ${formItem.delTitle} -->
     <!-- elif: ${formItem.components} -->
-        <div class="form-row component-container" id="${formItem.components.containerId}"
-            component-submit-name="${formItem.components.submitName}">
-        </div>
+        <!-- for: ${formItem.components} as ${component} -->
+            <div class="form-row component-container" id="${component.containerId}"
+                component-submit-name="${component.submitName}">
+            </div>
+        <!-- /for -->
     <!-- else -->
         <div class="form-row"
             <!-- if: ${formItem.properties.hidden} -->
@@ -30,11 +24,18 @@
             <!-- /if -->
             <!-- if: ${formItem.type} == 'BoxGroup' -->
                 <div class="form-value">
-                    <span data-ui="id:${formItem.id};name:${formItem.id};type:${formItem.type};boxType:${formItem.boxType};orientation:${formItem.orientation};"
+                    <span data-identify="${formItem.id}" data-ui="
+                            id:${formItem.id};
+                            name:${formItem.id};
+                            type:${formItem.type};
+                            boxType:${formItem.boxType};
+                            orientation:${formItem.orientation};
+                            <!-- if: ${isDisabled} -->disabled:1;<!-- /if -->
+                        "
                         boxgroup-required="<!-- if: ${formItem.boxType} == 'checkbox' && ${formItem.rules.required} -->1<!-- else -->0<!-- /if -->"
-                        boxgroup-required-error-message="请选择${formItem.title}"
+                        boxgroup-required-error-message="${i18n.QXZ}${formItem.title}"
                         boxgroup-max-selected-count="${formItem.rules.maxSelectedCount}"
-                        boxgroup-max-selected-count-error-message="${formItem.title}最多选择${formItem.rules.maxSelectedCount}个">
+                        boxgroup-max-selected-count-error-message="${formItem.title}${i18n.ZDXZ}${formItem.rules.maxSelectedCount}${i18n.Ge}">
                         <ul>
                             <!-- for: ${formItem.list} as ${listItem}, ${index} -->
                             <li>
@@ -46,25 +47,25 @@
                                     checked="checked"
                                     <!-- /if -->
                                 />
-                                <label for="${formItem.id}_${index}">${listItem.value}</label>
+                                <label for="${formItem.id}_${index}">${listItem.text}</label>
                             </li>
                             <!-- /for -->
                         </ul>
                     </span>
                     <!-- if: ${formItem.rules.required} -->
                         <span class="red">*</span>
-                        <span>必填</span>
+                        <span>${i18n.BT}</span>
                     <!-- /if -->
                 </div>
             <!-- elif: ${formItem.type} == 'Select' -->
                 <div class="form-value">
-                    <select class="select" name="${formItem.id}"
+                    <select data-identify="${formItem.id}" class="select" name="${formItem.id}"
+                        select-required="<!-- if: ${formItem.rules.required} -->1<!-- else -->0<!-- /if -->"
                         data-ui-type="Select" data-ui-id="${formItem.id}"
                         data-ui-name="${formItem.id}" data-ui-title="${formItem.title}"
                         data-ui-width="${formItem.properties.width}"
                         data-ui-excludeVal="${formItem.excludeVal}"
-                        data-ui-disabled="${formItem.properties.disabled}"
-                        data-ui-required="<!-- if: ${formItem.rules.required} -->1<!-- else -->0<!-- /if -->"
+                        data-ui-disabled="<!-- if: ${formItem.properties.disabled} || ${isDisabled} -->1<!-- /if -->"
                     >
                         <!-- for: ${formItem.list} as ${listItem}, ${index} -->
                             <option value="${listItem.value}"
@@ -78,12 +79,21 @@
                     </select>
                     <!-- if: ${formItem.rules.required} -->
                         <span class="red">*</span>
-                        <span>必填</span>
+                        <span>${i18n.BT}</span>
+                    <!-- /if -->
+                    <!-- if: ${formItem.properties.subItems} -->
+                        <button class="add-items" data-ref-identify="${formItem.id}">添加</button>
+                    <!-- /if -->
+                    <!-- if: ${formItem.properties.delItems} -->
+                        <button class="del-items" data-ref-identify="${formItem.properties.delItems}" data-del-identify="${formItem.properties.delIdentify}">删除</button>
                     <!-- /if -->
                 </div>
             <!-- else -->
                 <div class="form-value">
-                    <span id="${formItem.id}" name="${formItem.id}"
+                    <span data-identify="${formItem.id}" id="${formItem.id}" name="${formItem.id}"
+                        <!-- if: ${formItem.rules.cascadeRequired} -->
+                        cascade-required="${formItem.rules.cascadeRequired}"
+                        <!-- /if -->
                         <!-- if: ${formItem.rules.ajaxValid} -->
                         ajax-valid="${formItem.rules.ajaxValid}"
                         <!-- /if -->
@@ -100,14 +110,17 @@
                             ${ruleKey}: ${ruleVal};
                         <!-- /for -->
                         <!-- if: ${formItem.type} == 'Uploader' -->
-                        action: ${uploadUrl};
+                            action: ${uploadUrl};
+                        <!-- /if -->
+                        <!-- if: ${isDisabled} -->
+                            disabled:1;
                         <!-- /if -->
                     ">
                     </span>
                     <!-- if: ${formItem.rules.required} -->
                         <span class="red">*</span>
                         <span>
-                            必填 <!-- if: ${formItem.properties.extTip} -->${formItem.properties.extTip}<!-- /if -->
+                            ${i18n.BT} <!-- if: ${formItem.properties.extTip} -->${formItem.properties.extTip}<!-- /if -->
                         </span>
                     <!-- else -->
                         <!-- if: ${formItem.properties.extTip} -->
@@ -115,10 +128,21 @@
                             <span>${formItem.properties.extTip}</span>
                         <!-- /if -->
                     <!-- /if -->
+                    <!-- if: ${formItem.properties.subItems} -->
+                        <button class="add-items" data-ref-identify="${formItem.id}">添加</button>
+                    <!-- /if -->
+                    <!-- if: ${formItem.properties.delItems} -->
+                        <button class="del-items" data-ref-identify="${formItem.properties.delItems}" data-del-identify="${formItem.properties.delIdentify}">删除</button>
+                    <!-- /if -->
                 </div>
             <!-- /if -->
             <!-- if: ${formItem.properties.previewContainer} -->
-                <div data-ui-type="Image" data-ui-id="${formItem.properties.previewContainer}" class="img-preview"></div>
+                <div data-ui-type="Image"
+                    data-ui-id="${formItem.properties.previewContainer}"
+                    <!-- if: ${isDisabled} -->
+                        data-ui-disabled="1";
+                    <!-- /if -->
+                    class="img-preview"></div>
             <!-- /if -->
         </div>
     <!-- /if -->

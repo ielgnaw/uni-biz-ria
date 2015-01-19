@@ -9,7 +9,9 @@ define(function (require) {
     var Deferred = require('er/Deferred');
     var Dialog = require('esui/Dialog');
 
-    var DEFAULT_ERROR_MSG = '服务异常，请稍后再试';
+    var LANG_PKG = require('../lang').getLangPkg();
+
+    var DEFAULT_ERROR_MSG = LANG_PKG.CZSB;
 
     /**
      * 常用的 biz 异常码以及提示内容
@@ -26,7 +28,7 @@ define(function (require) {
      */
     var BIZ_STATUS_ERROR = {
         1001: DEFAULT_ERROR_MSG,  // 点击确定后刷新页面
-        1002: '尚未登录，请登录',    // 未登录，直接跳转到后端传来的 statusInfo 里面的地址
+        1002: LANG_PKG.SWDL,    // 未登录，直接跳转到后端传来的 statusInfo 里面的地址
         1100: DEFAULT_ERROR_MSG,  // 返回数据为空
         1101: DEFAULT_ERROR_MSG,  // 返回数据不存在 status 字段
         1102: DEFAULT_ERROR_MSG   // 不能转化为数字的 status 字段
@@ -70,7 +72,7 @@ define(function (require) {
      */
     function showAlert(bizStatusInfo, isRefresh) {
         var options = {
-            type: 'warning',
+            type: 'fail',
             content: bizStatusInfo,
             contentType: 'html'
         };
