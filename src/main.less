@@ -1,6 +1,7 @@
 @import './mvc/component/select-addr/main.less';
 @import './ui/css/Loading.less';
 @import './ui/css/Uploader.less';
+@import './ui/css/imgUploader.less';
 
 .red {
     color: #f00;
@@ -14,7 +15,8 @@
     .border-radius(3px);
 }
 
-.create-idea-form {
+.create-idea-form,
+.edit-idea-form {
     margin: 0 0 0 10px;
 
     .form-item-split {
@@ -59,6 +61,13 @@
 
     .form-row {
         padding: 2px 0;
+    }
+
+    #form-row-fold {
+        margin: -35px 0 0 375px; 
+        .form-key {
+            display: none; 
+        }
     }
 
     .form-key,

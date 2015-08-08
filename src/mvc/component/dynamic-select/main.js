@@ -62,6 +62,7 @@ define(function (require) {
                 title: componentsConf.title,
                 properties: componentsConf.properties,
                 excludeVal: componentsConf.excludeVal,
+                emptyTip: componentsConf.emptyTip,
                 required: componentsList[0].rules.required
             });
         }
@@ -74,6 +75,7 @@ define(function (require) {
                     title: componentsConf.title + (i + 1),
                     properties: componentsConf.properties,
                     excludeVal: componentsConf.excludeVal + (i + 1),
+                    emptyTip: componentsConf.emptyTip,
                     required: curItem.rules.required
                 });
             }

@@ -8,6 +8,7 @@ define(function (require) {
     var _ = require('underscore');
     var moment = require('moment');
     var WHITESPACE = /^[\s\xa0\u3000]+|[\u3000\xa0\s]+$/g;
+    var toString = Object.prototype.toString;
 
     /**
      * 将 json 对象序列化
@@ -180,6 +181,19 @@ define(function (require) {
     })();
 
     /**
+     * 判断对象是否是某种类型
+     *
+     * @param {string} type 类型字面量
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 变量是否是这种类型
+     */
+    function is(type, obj) {
+        var cls = toString.call(obj).slice(8, -1);
+        return obj !== undefined && obj !== null && cls === type;
+    }
+
+    /**
      * 工具模块
      *
      * @class util
@@ -188,6 +202,135 @@ define(function (require) {
     var util = {};
 
     util.stringify = stringify;
+
+    /**
+     * 是否是 array 类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 结果
+     */
+    util.isArray = function (obj) {
+        return is('Array', obj);
+    };
+
+    /**
+     * 是否是 object 类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 结果
+     */
+    util.isObject = function (obj) {
+        return is('Object', obj);
+    };
+
+    /**
+     * 是否是 string 类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 结果
+     */
+    util.isString = function (obj) {
+        return is('String', obj);
+    };
+
+    /**
+     * 是否是 function 类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 结果
+     */
+    util.isFunction = function (obj) {
+        return is('Function', obj);
+    };
+
+    /**
+     * 是否是 boolean 类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 结果
+     */
+    util.isBoolean = function (obj) {
+        return is('Boolean', obj);
+    };
+
+    /**
+     * 是否是 number 类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 结果
+     */
+    util.isNumber = function (obj) {
+        return is('Number', obj);
+    };
+
+    /**
+     * 是否是 date 类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 结果
+     */
+    util.isDate = function (obj) {
+        return is('Date', obj);
+    };
+
+    /**
+     * 是否是 regexp 类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 结果
+     */
+    util.isRegExp = function (obj) {
+        return is('RegExp', obj);
+    };
+
+    /**
+     * 是否是 error 类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {boolean} 结果
+     */
+    util.isError = function (obj) {
+        return is('Error', obj);
+    };
+
+    /**
+     * 获取变量类型
+     *
+     * @param {*} obj 目标变量
+     *
+     * @return {string} 类型字面量
+     */
+    util.getType = function (obj) {
+        return obj !== undefined && obj !== null && toString.call(obj).slice(8, -1);
+    };
+
+    /**
+     * 检测变量是否为空的简单对象
+     *
+     * @param {*} obj 目标变量
+     * @return {boolean} 结果
+     */
+    util.isEmptyObject = function (obj) {
+        if (util.get(obj) !== 'object') {
+            return false;
+        }
+
+        var key;
+        for (key in obj) {
+            return false;
+        }
+
+        return true;
+    };
 
     /**
      * 将目标字符串中可能会影响正则表达式构造的字符串进行转义。

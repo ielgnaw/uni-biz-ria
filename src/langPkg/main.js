@@ -8,7 +8,8 @@ define(function (require) {
     var langInfo = {
         'zh_CN': require('./zh_CN'),
         'en_US': require('./en_US'),
-        'pt_BR': require('./pt_BR')
+        'pt_BR': require('./pt_BR'),
+        'th_TH': require('./th_TH')
     };
 
     return langInfo;

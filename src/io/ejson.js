@@ -74,7 +74,8 @@ define(function (require) {
         var options = {
             type: 'fail',
             content: bizStatusInfo,
-            contentType: 'html'
+            contentType: 'html',
+            okText: LANG_PKG.QR
         };
         var dialog = Dialog.alert(options);
 
@@ -184,6 +185,11 @@ define(function (require) {
                         20
                     );
                 }
+                break;
+             case 1003:
+                bizStatusInfo = data.statusInfo
+                    ? data.statusInfo
+                    : (BIZ_STATUS_ERROR[bizStatusCode] || DEFAULT_ERROR_MSG);
                 break;
             default:
                 bizStatusInfo = data.statusInfo

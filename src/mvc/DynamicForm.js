@@ -8,11 +8,14 @@ define(function (require) {
     var Action = require('er/Action');
     var util = require('er/util');
     var Dialog = require('esui/Dialog');
+    var Deferred = require('er/Deferred');
 
     var ejson = require('../io/ejson');
     var uniUtil = require('../util');
     var dynamicUtil = require('./dynamicUtil');
     var LANG_PKG = require('../lang').getLangPkg();
+
+    var lock = false;
 
     /**
      * 动态 Form Action 基类
@@ -63,74 +66,70 @@ define(function (require) {
         view.on(
             'submit',
             function (params) {
-                dynamicUtil.validAjax(view).then(
-                    function (ret) {
-                        var isValid = true;
-                        for (var i = 0, len = ret.length; i < len; i++) {
-                            if (ret[i].data.status !== 0) {
-                                var esuiDom = ret[i].esuiDom;
-                                var validityLabel = esuiDom.getValidityLabel();
-                                validityLabel.display(false, ret[i].data.statusInfo);
-                                validityLabel.show();
-                                isValid = false;
-                            }
-                        }
-
-                        if (isValid) {
-                            if (!dynamicUtil.validCheckbox()
-                                || !dynamicUtil.validSelect(view)
-                                || !dynamicUtil.validTextBox(view)
-                                || !dynamicUtil.validCascadeRequired(view)
-                            ) {
-                                return;
-                            }
-
-                            Dialog.confirm({
-                                title: LANG_PKG.QR,
-                                content: confirmMsg,
-                                width: 300,
-                                skin: 'exconfirm'
-                            }).on(
-                                'ok',
-                                function () {
-                                    // form 实例
-                                    var form = params.form;
-                                    var formData = form.getData();
-                                    var ideaName = formData.ideaName;
-                                    delete formData.ideaName;
-
-                                    var componentData = params.componentData;
-                                    // debugger
-                                    for (var i in componentData) {
-                                        var componentCallback = params.componentCallback[i];
-                                        if (componentCallback && typeof componentCallback === 'function') {
-                                            var c = componentCallback.call(null, componentData[i]);
-                                            formData[c.submitName] = c.dataList;
-                                        }
-                                        else {
-                                            formData[componentData.submitName] = componentData.dataList;
-                                        }
-                                    }
-
-                                    var ajaxArgs = {
-                                        ideaName: ideaName,
-                                        ideaInfoS: uniUtil.stringify(formData)
-                                    };
-
-                                    if (params.ideaInfo) {
-                                        ajaxArgs.ideaId = params.ideaInfo.ideaId;
-                                    }
-
-                                    ejson.post(
-                                        model.get('submitUrl'),
-                                        ajaxArgs,
-                                        'json'
-                                    ).then(successFunc, errorFunc);
+                if (!lock) {
+                    lock = true;
+                    dynamicUtil.validAjax(view).then(
+                        function (ret) {
+                            lock = false;
+                            if (ret === 1) {
+                                if (!dynamicUtil.validCheckbox()
+                                    || !dynamicUtil.validSelect(view)
+                                    || !dynamicUtil.validTextBox(view)
+                                    || !dynamicUtil.validTextBoxByteLength(view)
+                                    || !dynamicUtil.validCascadeRequired(view)
+                                ) {
+                                    return;
                                 }
-                            );
+
+                                Dialog.confirm({
+                                    title: LANG_PKG.QR,
+                                    content: confirmMsg,
+                                    width: 300,
+                                    skin: 'exconfirm',
+                                    okText: LANG_PKG.QR,
+                                    cancelText: LANG_PKG.QX
+                                }).on(
+                                    'ok',
+                                    function () {
+                                        // form 实例
+                                        var form = params.form;
+                                        var formData = form.getData();
+                                        var ideaName = formData.ideaName;
+                                        delete formData.ideaName;
+
+                                        var componentData = params.componentData;
+                                        // debugger
+                                        for (var i in componentData) {
+                                            var componentCallback = params.componentCallback[i];
+                                            if (componentCallback && typeof componentCallback === 'function') {
+                                                var c = componentCallback.call(null, componentData[i]);
+                                                formData[c.submitName] = c.dataList;
+                                            }
+                                            else {
+                                                formData[componentData.submitName] = componentData.dataList;
+                                            }
+                                        }
+
+                                        var ajaxArgs = {
+                                            ideaName: ideaName,
+                                            ideaInfoS: uniUtil.stringify(formData)
+                                        };
+
+                                        if (params.ideaInfo) {
+                                            ajaxArgs.ideaId = params.ideaInfo.ideaId;
+                                        }
+
+                                        ejson.post(
+                                            model.get('submitUrl'),
+                                            ajaxArgs,
+                                            'json'
+                                        ).then(successFunc, errorFunc);
+                                    }
+                                );
+                            }
                         }
-                    }
-                );
+                    );
+                }
             }
         );
     };

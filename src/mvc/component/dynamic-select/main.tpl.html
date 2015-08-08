@@ -10,14 +10,23 @@
         <select class="select" data-ui-id="${renderData.id}"
             data-ui-type="Select"
             data-ui-excludeVal="${renderData.excludeVal}"
+            <!-- if: ${renderData.emptyTip} -->
+                data-ui-emptyTip="${renderData.emptyTip}"
+            <!-- /if -->
             data-ui-title="${renderData.title}"
             data-ui-width="${renderData.properties.width}"
             data-ui-disabled="${renderData.properties.disabled}"
             select-required="<!-- if: ${renderData.required} == '1' -->1<!-- else -->0<!-- /if -->"
         >
+            <!-- if: !${renderData.selectData.length} && ${renderData.emptyTip} -->
+            <option value="${renderData.emptyTip}">
+                ${renderData.emptyTip}
+            </option>
+            <!-- else -->
             <option value="${renderData.excludeVal}">
                 ${renderData.excludeVal}
             </option>
+            <!-- /if -->
             <!-- for: ${renderData.selectData} as ${item} -->
                 <option value="${item.ideaId}"
                     <!-- if: ${item.selected} == '1' -->

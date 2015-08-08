@@ -4,8 +4,10 @@
 <!-- for: ${componentList} as ${component}, ${index} -->
     <!-- var: componentIndex = ${component.index} -->
     <!-- var: isRequired = '' -->
+    <!-- var: selectRequired = '' -->
     <!-- if: ${index} == '0' -->
         <!-- var: isRequired = 'data-ui-required=1' -->
+        <!-- var: selectRequired = 'select-required=1' -->
     <!-- /if -->
     <div class="form-key">机构地址${componentIndex}：</div>
     <div class="form-value">
@@ -14,6 +16,7 @@
             data-ui-width="60" data-ui-excludeVal="请选择省份"
             data-ui-title="机构地址${componentIndex}省份"
             ${isRequired}
+            ${selectRequired}
             >
         </span>
         <span class="component-select-addr-sel"
@@ -21,6 +24,7 @@
             data-ui-width="60" data-ui-excludeVal="请选择城市"
             data-ui-title="机构地址${componentIndex}城市"
             ${isRequired}
+            ${selectRequired}
             >
         </span>
         <input
@@ -28,6 +32,12 @@
             data-ui-width="150" data-ui-mode="text"
             data-ui-placeholder="XX路XX号"
             data-ui-title="机构地址${componentIndex}详细地址"
+            <!-- if: ${component.maxByteLength} -->
+            data-max-byte-length="${component.maxByteLength}"
+            <!-- /if -->
+            <!-- if: ${component.minByteLength} -->
+            data-min-byte-length="${component.minByteLength}"
+            <!-- /if -->
             ${isRequired}
         />
         <!-- if: ${isRequired} != '' -->

@@ -14,8 +14,32 @@ define(function (require) {
     var Deferred = require('er/Deferred');
     var Dialog = require('esui/Dialog');
     var uniUtil = require('../util');
+    var ejson = require('../io/ejson');
 
     var LANG_PKG = require('../lang').getLangPkg();
+
+    var BYTE_PATTERN = /[^\x00-\xff]/g;
+
+    function sendCheckReq(u, index) {
+        var loading = new Deferred();
+        ejson.post(
+            u.url,
+            {
+                check: u.esuiDom.getValue()
+            }
+        ).then(function (data) {
+            loading.resolve({
+                esuiDom: u.esuiDom,
+                data: data
+            });
+        }, function (statusInfo) {
+            loading.resolve({
+                esuiDom: u.esuiDom,
+                data: statusInfo
+            });
+        });
+        return loading.promise;
+    }
 
     var dynamicUtil = {};
 
@@ -30,49 +54,55 @@ define(function (require) {
         var ajaxValidDoms = $('[ajax-valid]');
         var len = ajaxValidDoms.length;
         var defer = new Deferred();
-        var ret = [];
         var model = view.model;
-        var checkDomainUrl = model.get('checkDomainUrl');
-        if (!len || !checkDomainUrl) {
-            defer.resolve(ret);
+        var validStatus = 1;
+        // var checkDomainUrl = model.get('checkDomainUrl');
+        if (!len) {
+            defer.resolve(validStatus);
         }
         else {
-            _.forEach(
-                ajaxValidDoms,
-                function (ajaxValidDom, index) {
-                    var dom = $(ajaxValidDom);
+            var urls = [];
+            for (var index = 0; index < len; index++) {
+                var dom = $(ajaxValidDoms[index]);
+                var checkDomainUrl = dom.attr('ajax-valid') || model.get('checkDomainUrl');
+                if (checkDomainUrl) {
+                    checkDomainUrl += ''
+                        + '?isAjax=1&userId='
+                        + model.userId
+                        + '&nestId='
+                        + model.nestId;
                     var esuiDom = view.get(dom.attr('name'));
-                    var domValue = esuiDom.getValue();
-                    $.ajax({
-                        type: 'post',
-                        dataType: 'json',
+                    urls.push({
                         url: checkDomainUrl,
+                        esuiDom: esuiDom,
                         data: {
-                            check: domValue
+                            check: esuiDom.getValue()
                         }
-                    }).done(
-                        function (data) {
-                            // 当 domValue 不存在时，也需要发这个请求
-                            // 是为了让 defer.resolve 只有这一个出口
-                            if (!domValue) {
-                                ret.push({
-                                    data: {
-                                        status: 0
-                                    },
-                                    esuiDom: esuiDom
-                                });
-                            }
-                            else {
-                                 ret.push({
-                                    data: data,
-                                    esuiDom: esuiDom
-                                });
-                            }
-                            if (index === len - 1) {
-                                defer.resolve(ret);
-                            }
+                    });
+                }
+            }
+
+            Deferred.all(
+                (function () {
+                    return _.map(
+                        urls,
+                        function (url, index) {
+                            return sendCheckReq(url, index);
                         }
                     );
+                })()
+            ).then(
+                function () {
+                    var allData = Array.prototype.slice.call(arguments, 0);
+                    for (var i = 0, l = allData.length; i < l; i++) {
+                        if (uniUtil.isString(allData[i].data)) {
+                            validStatus = -1;
+                            var validityLabel = allData[i].esuiDom.getValidityLabel();
+                            validityLabel.display(false, allData[i].data);
+                            validityLabel.show();
+                        }
+                    }
+                    defer.resolve(validStatus);
                 }
             );
         }
@@ -156,6 +186,17 @@ define(function (require) {
                 ret = false;
                 break;
             }
+
+            var emptyTip = curDom.attr('data-ui-emptyTip');
+            if (emptyTip) {
+                if (selectItemText == emptyTip || esuiDom.getValue() == emptyTip) {
+                    Dialog.alert({
+                        content: emptyTip
+                    });
+                    ret = false;
+                    break;
+                }
+            }
         }
         return ret;
     };
@@ -193,6 +234,64 @@ define(function (require) {
                         break;
                     }
                 }
+            }
+        }
+
+        return ret;
+    };
+
+    /**
+     * 验证 form 中必填的 TextBox 的 max-byte-length 和 min-byte-length
+     * 正常来说，会通过 esui.Form 的 valid 来验证
+     * 但是这样验证必须把 formItem 作为一个表单项即要设置 data-ui-name 属性才生效，设置了
+     * data-ui-name 属性后，就会把这个 formItem 项提交给后端，所以这里单独验证下
+     *
+     * @param {er.View} view 当前 View
+     *
+     * @return {boolean}
+     */
+    dynamicUtil.validTextBoxByteLength = function (view) {
+        var ret = true;
+
+        var componentContainers = $('.component-container');
+
+        for (var i = 0, len = componentContainers.length; i < len; i++) {
+            var componentContainer = $(componentContainers[i]);
+            var textBoxs = $('input[data-ui-type="TextBox"]', componentContainer);
+
+            for (var j = 0, jLen = textBoxs.length; j < jLen; j++) {
+                var curTextBox = $(textBoxs[j]);
+                var val = curTextBox.val();
+                if (val) {
+                    var esuiKey = curTextBox.attr('data-ui-name')
+                        || curTextBox.attr('data-ui-id');
+                    var esuiDom = view.get(esuiKey);
+
+                    var maxByteLength = parseInt(curTextBox.attr('data-max-byte-length') || 0, 10);
+                    var minByteLength = parseInt(curTextBox.attr('data-min-byte-length') || 0, 10);
+                    var byteLength = val.replace(BYTE_PATTERN, 'xx').length;
+                    if ((maxByteLength !== 0 && byteLength > maxByteLength)
+                        || (minByteLength !== 0 && byteLength < minByteLength)
+                    ) {
+                        Dialog.alert({
+                            content: ''
+                                + (esuiDom.get('title') || '机构地址')
+                                + '最少'
+                                + minByteLength
+                                + '个字符（'
+                                + minByteLength / 2
+                                + '个汉字），'
+                                + '最多'
+                                + maxByteLength
+                                + '个字符（'
+                                + maxByteLength / 2
+                                + '个汉字）'
+                        });
+                        ret = false;
+                        break;
+                    }
+                }
+
             }
         }
 
