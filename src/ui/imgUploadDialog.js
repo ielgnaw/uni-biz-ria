@@ -7,14 +7,14 @@ define(function (require) {
 
     var Dialog = require('esui/Dialog');
     var esui = require('esui');
-
-    var uniUtil = require('uni-biz-ria/util');
+    var lib = require('esui/lib');
     var $ = require('jquery');
-    var loading = require('uni-biz-ria/ui/Loading');
     var sys = require('sys');
     var webInfo = sys.getWebInfo();
-    var ImageCrop = require('imageCrop');
-    var lib = require('esui/lib');
+
+    var uniUtil = require('../util');
+    var ImageCrop = require('./imageCrop');
+    var loading = require('./Loading');
 
     var dialogId = 'img-upload-dialog';
     var dialogTpl = '<div id="' + dialogId + '"></div>';
