@@ -216,13 +216,16 @@ define(function (require) {
 
         var componentContainers = $('.component-container');
 
+        outerloop:
         for (var i = 0, len = componentContainers.length; i < len; i++) {
             var componentContainer = $(componentContainers[i]);
             var textBoxs = $('[data-ui-type="TextBox"]', componentContainer);
 
             for (var j = 0, jLen = textBoxs.length; j < jLen; j++) {
                 var curTextBox = $(textBoxs[j]);
-                if (curTextBox.attr('data-ui-required') == '1') {
+                if (curTextBox.attr('data-ui-required') == '1'
+                    || curTextBox.attr('data-ui-exRequired') == '1'
+                ) {
                     var esuiKey = curTextBox.attr('data-ui-name')
                         || curTextBox.attr('data-ui-id');
                     var esuiDom = view.get(esuiKey);
@@ -231,7 +234,7 @@ define(function (require) {
                             content: LANG_PKG.QTX + (esuiDom.get('title') || LANG_PKG.JGDZ)
                         });
                         ret = false;
-                        break;
+                        break outerloop;
                     }
                 }
             }

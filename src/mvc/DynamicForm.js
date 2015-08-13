@@ -63,6 +63,11 @@ define(function (require) {
                 ? view.errorFunc
                 : function () {};
 
+        var beforeSubmitFunc =
+            typeof view.beforeSubmitFunc === 'function'
+                ? view.beforeSubmitFunc
+                : function () {};
+
         view.on(
             'submit',
             function (params) {
@@ -118,6 +123,8 @@ define(function (require) {
                                         if (params.ideaInfo) {
                                             ajaxArgs.ideaId = params.ideaInfo.ideaId;
                                         }
+
+                                        beforeSubmitFunc.call(view, ajaxArgs);
 
                                         ejson.post(
                                             model.get('submitUrl'),

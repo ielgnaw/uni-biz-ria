@@ -18,7 +18,7 @@ define(function (require) {
     /**
      * 当前组件在提交 form 的时候的值
      *
-     * @property {string} submieName 提交时的 key ，在 json 中配置的
+     * @property {string} submitName 提交时的 key ，在 json 中配置的
      * @property {Array} dataList 提交的数据
      *
      * @type {Object}
@@ -46,7 +46,8 @@ define(function (require) {
 
         var componentList = componentsConf.list;
         var etplRenderOpts = {
-            componentList: componentList
+            componentList: componentList,
+            submitName: formSubmitData.submitName
         };
 
         containerDom.html(
@@ -65,12 +66,12 @@ define(function (require) {
 
         for (var i = 0, len = componentList.length; i < len; i++) {
             var component = componentList[i];
-            view.get('prov' + component.index).updateDatasource(povince.getAll());
+            view.get('prov' + formSubmitData.submitName + component.index).updateDatasource(povince.getAll());
             // 默认选中北京，如果是修改，那么回填之前的值
-            view.get('prov' + component.index).setValue(
+            view.get('prov' + formSubmitData.submitName + component.index).setValue(
                 (editData && editData[i]) ? editData[i].prov : 0
             );
-            view.get('prov' + component.index).on(
+            view.get('prov' + formSubmitData.submitName + component.index).on(
                 'change',
                 lib.bind(
                     changeProv,
@@ -82,13 +83,13 @@ define(function (require) {
                 )
             );
 
-            view.get('city' + component.index).updateDatasource(
-                city.getCityByProvince(view.get('prov' + component.index).getValue())
+            view.get('city' + formSubmitData.submitName + component.index).updateDatasource(
+                city.getCityByProvince(view.get('prov' + formSubmitData.submitName + component.index).getValue())
             );
-            view.get('city' + component.index).setValue(
+            view.get('city' + formSubmitData.submitName + component.index).setValue(
                 (editData && editData[i]) ? editData[i].city : 0
             );
-            view.get('city' + component.index).on(
+            view.get('city' + formSubmitData.submitName + component.index).on(
                 'change',
                 lib.bind(
                     changeCity,
@@ -100,10 +101,10 @@ define(function (require) {
                 )
             );
 
-            view.get('addr' + component.index).setValue(
+            view.get('addr' + formSubmitData.submitName + component.index).setValue(
                 (editData && editData[i]) ? editData[i].addr : ''
             );
-            view.get('addr' + component.index).on(
+            view.get('addr' + formSubmitData.submitName + component.index).on(
                 'change',
                 lib.bind(
                     changeAddr,
@@ -116,9 +117,9 @@ define(function (require) {
             );
 
             formSubmitData.dataList.push({
-                prov: view.get('prov' + component.index).getValue(),
-                city: view.get('city' + component.index).getValue(),
-                addr: view.get('addr' + component.index).getValue() || ''
+                prov: view.get('prov' + formSubmitData.submitName + component.index).getValue(),
+                city: view.get('city' + formSubmitData.submitName + component.index).getValue(),
+                addr: view.get('addr' + formSubmitData.submitName + component.index).getValue() || ''
             });
         }
 
@@ -144,10 +145,11 @@ define(function (require) {
         var me = this;
         var provVal = e.target.getValue();
         var cityList = city.getCityByProvince(provVal);
-        me.view.get('city' + me.index).updateDatasource(cityList);
+        me.view.get('city' + me.formSubmitData.submitName + me.index).updateDatasource(cityList);
 
         me.formSubmitData.dataList[me.index - 1].prov = provVal;
-        me.formSubmitData.dataList[me.index - 1].city = me.view.get('city' + me.index).getValue();
+        me.formSubmitData.dataList[me.index - 1].city
+            = me.view.get('city' + me.formSubmitData.submitName + me.index).getValue();
 
         // submitDataFilter(formSubmitData);
 

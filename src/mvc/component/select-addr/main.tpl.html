@@ -3,35 +3,39 @@
 
 <!-- for: ${componentList} as ${component}, ${index} -->
     <!-- var: componentIndex = ${component.index} -->
+    <!-- var: title = ${component.title} -->
     <!-- var: isRequired = '' -->
     <!-- var: selectRequired = '' -->
     <!-- if: ${index} == '0' -->
-        <!-- var: isRequired = 'data-ui-required=1' -->
+        <!-- var: isRequired = 'data-ui-exRequired=1' -->
         <!-- var: selectRequired = 'select-required=1' -->
     <!-- /if -->
-    <div class="form-key">机构地址${componentIndex}：</div>
+
+    <div class="form-key">
+        <!-- if: !${title} -->机构地址<!-- else -->${title}<!-- /if -->${componentIndex}：
+    </div>
     <div class="form-value">
         <span class="component-select-addr-sel"
-            data-ui-type="Select" data-ui-id="prov${componentIndex}"
+            data-ui-type="Select" data-ui-id="prov${submitName}${componentIndex}"
             data-ui-width="60" data-ui-excludeVal="请选择省份"
-            data-ui-title="机构地址${componentIndex}省份"
+            data-ui-title="<!-- if: !${title} -->机构地址${componentIndex}<!-- else -->${title}<!-- /if -->省份"
             ${isRequired}
             ${selectRequired}
             >
         </span>
         <span class="component-select-addr-sel"
-            data-ui-type="Select" data-ui-id="city${componentIndex}"
+            data-ui-type="Select" data-ui-id="city${submitName}${componentIndex}"
             data-ui-width="60" data-ui-excludeVal="请选择城市"
-            data-ui-title="机构地址${componentIndex}城市"
+            data-ui-title="<!-- if: !${title} -->机构地址${componentIndex}<!-- else -->${title}<!-- /if -->城市"
             ${isRequired}
             ${selectRequired}
             >
         </span>
         <input
-            data-ui-type="TextBox" data-ui-id="addr${componentIndex}"
+            data-ui-type="TextBox" data-ui-id="addr${submitName}${componentIndex}"
             data-ui-width="150" data-ui-mode="text"
             data-ui-placeholder="XX路XX号"
-            data-ui-title="机构地址${componentIndex}详细地址"
+            data-ui-title="<!-- if: !${title} -->机构地址${componentIndex}<!-- else -->${title}<!-- /if -->详细地址"
             <!-- if: ${component.maxByteLength} -->
             data-max-byte-length="${component.maxByteLength}"
             <!-- /if -->
