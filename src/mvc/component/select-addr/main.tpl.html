@@ -4,15 +4,28 @@
 <!-- for: ${componentList} as ${component}, ${index} -->
     <!-- var: componentIndex = ${component.index} -->
     <!-- var: title = ${component.title} -->
+    <!-- var: dividerInfo = ${component.dividerInfo} -->
+    <!-- var: noRequired = ${component.noRequired} -->
     <!-- var: isRequired = '' -->
     <!-- var: selectRequired = '' -->
     <!-- if: ${index} == '0' -->
         <!-- var: isRequired = 'data-ui-exRequired=1' -->
         <!-- var: selectRequired = 'select-required=1' -->
     <!-- /if -->
+    <!-- if: ${noRequired} == '1' -->
+        <!-- var: isRequired = '' -->
+        <!-- var: selectRequired = '' -->
+    <!-- /if -->
+    <!-- if: ${dividerInfo} -->
+        <!-- if: ${dividerInfo} == ' ' -->
+            <hr/>
+        <!-- else -->  
+            <hr/><span style="margin-left:65px;color:#ff6600;">${dividerInfo}</span><hr/>
+        <!-- /if -->
+    <!-- /if -->
 
     <div class="form-key">
-        <!-- if: !${title} -->机构地址<!-- else -->${title}<!-- /if -->${componentIndex}：
+        <!-- if: !${title} -->机构地址${componentIndex}：<!-- else -->${title}<!-- /if -->
     </div>
     <div class="form-value">
         <span class="component-select-addr-sel"

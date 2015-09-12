@@ -86,6 +86,38 @@ define(function (require) {
                                     return;
                                 }
 
+                                // form 实例
+                                var form = params.form;
+                                var formData = form.getData();
+                                var ideaName = formData.ideaName;
+                                delete formData.ideaName;
+
+                                var componentData = params.componentData;
+                                // debugger
+                                for (var i in componentData) {
+                                    var componentCallback = params.componentCallback[i];
+                                    if (componentCallback && typeof componentCallback === 'function') {
+                                        var c = componentCallback.call(null, componentData[i]);
+                                        formData[c.submitName] = c.dataList;
+                                    }
+                                    else {
+                                        formData[componentData.submitName] = componentData.dataList;
+                                    }
+                                }
+
+                                var ajaxArgs = {
+                                    ideaName: ideaName,
+                                    ideaInfoS: uniUtil.stringify(formData)
+                                };
+
+                                if (params.ideaInfo) {
+                                    ajaxArgs.ideaId = params.ideaInfo.ideaId;
+                                }
+
+                                if (beforeSubmitFunc.call(view, ajaxArgs)) {
+                                    return;
+                                }
+                                
                                 Dialog.confirm({
                                     title: LANG_PKG.QR,
                                     content: confirmMsg,
@@ -96,36 +128,6 @@ define(function (require) {
                                 }).on(
                                     'ok',
                                     function () {
-                                        // form 实例
-                                        var form = params.form;
-                                        var formData = form.getData();
-                                        var ideaName = formData.ideaName;
-                                        delete formData.ideaName;
-
-                                        var componentData = params.componentData;
-                                        // debugger
-                                        for (var i in componentData) {
-                                            var componentCallback = params.componentCallback[i];
-                                            if (componentCallback && typeof componentCallback === 'function') {
-                                                var c = componentCallback.call(null, componentData[i]);
-                                                formData[c.submitName] = c.dataList;
-                                            }
-                                            else {
-                                                formData[componentData.submitName] = componentData.dataList;
-                                            }
-                                        }
-
-                                        var ajaxArgs = {
-                                            ideaName: ideaName,
-                                            ideaInfoS: uniUtil.stringify(formData)
-                                        };
-
-                                        if (params.ideaInfo) {
-                                            ajaxArgs.ideaId = params.ideaInfo.ideaId;
-                                        }
-
-                                        beforeSubmitFunc.call(view, ajaxArgs);
-
                                         ejson.post(
                                             model.get('submitUrl'),
                                             ajaxArgs,

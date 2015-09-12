@@ -91,6 +91,50 @@
                         <button class="del-items" data-ref-identify="${formItem.properties.delItems}" data-del-identify="${formItem.properties.delIdentify}">删除</button>
                     <!-- /if -->
                 </div>
+            <!-- elif: ${formItem.type} == 'TextBoxs' -->
+                <div class="form-value">
+                    <!-- for: ${formItem.items} as ${item} -->
+                        <span data-identify="${item.id}" id="${item.id}" name="${item.id}"
+                            <!-- if: ${item.rules.cascadeRequired} -->
+                            cascade-required="${item.rules.cascadeRequired}"
+                            <!-- /if -->
+                            <!-- if: ${item.rules.ajaxValid} -->
+                            ajax-valid="${item.rules.ajaxValid}"
+                            <!-- /if -->
+                            data-ui="
+                            <!-- for: ${item} as ${val}, ${key} -->
+                                <!-- if: ${key} != 'properties' && ${key} != 'rules' -->
+                                    ${key}: ${val};
+                                <!-- /if -->
+                            <!-- /for -->
+                            <!-- for: ${item.properties} as ${propertyVal}, ${propertyKey} -->
+                                ${propertyKey}: ${propertyVal};
+                            <!-- /for -->
+                            <!-- for: ${item.rules} as ${ruleVal}, ${ruleKey} -->
+                                ${ruleKey}: ${ruleVal};
+                            <!-- /for -->
+                            <!-- if: ${item.type} == 'Uploader' -->
+                                action: ${uploadUrl};
+                            <!-- /if -->
+                            <!-- if: ${isDisabled} -->
+                                disabled:1;
+                            <!-- /if -->
+                        ">
+                        </span>
+                        <span>${item.itemSpliter}</span>
+                    <!-- /for -->
+                    <!-- if: ${item.rules.required} -->
+                        <span class="red">*</span>
+                        <span>
+                            ${i18n.BT} <!-- if: ${item.properties.extTip} -->${item.properties.extTip}<!-- /if -->
+                        </span>
+                    <!-- else -->
+                        <!-- if: ${item.properties.extTip} -->
+                            <span class="red">*</span>
+                            <span>${item.properties.extTip}</span>
+                        <!-- /if -->
+                    <!-- /if -->
+                </div>
             <!-- else -->
                 <div class="form-value">
                     <span data-identify="${formItem.id}" id="${formItem.id}" name="${formItem.id}"
