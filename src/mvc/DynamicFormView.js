@@ -430,68 +430,137 @@ define(function (require) {
         _.forEach(
             formItemConfigs,
             function (formItemConfig, index) {
-                var properties = formItemConfig.properties;
+                if (formItemConfig.type === 'TextBoxs') {
+                    for (var i = 0, itemsLen = formItemConfig.items.length; i < itemsLen; i++) {
+                        var fc = formItemConfig.items[i];
+                        var p = fc.properties;
 
-                if (properties) {
-                    ret[formItemConfig.id] = properties;
+                        if (p) {
+                            ret[fc.id] = p;
 
-                    // 把 Uploader 类型的 formItem 的值直接放入到 properties 中，
-                    // 便于不用循环就可以回填 Uploader 的值
-                    if (formType === 'edit'
-                        && formItemConfig.type === 'Uploader'
-                    ) {
-                        var uploaderData = model.get(formItemConfig.id);
+                            // 把 Uploader 类型的 formItem 的值直接放入到 p 中，
+                            // 便于不用循环就可以回填 Uploader 的值
+                            if (formType === 'edit'
+                                && fc.type === 'Uploader'
+                            ) {
+                                var uploaderData = model.get(fc.id);
 
-                        // 如果 uploaderData 不存在，说明这个 Uploader 组件不是必填项
-                        if (uploaderData) {
-                            ret[formItemConfig.id].uploaderVal = {
-                                width: uploaderData.width || 50,
-                                height: uploaderData.height || 50,
-                                previewUrl: decodeURIComponent(uploaderData)
-                            };
-                        }
-                    }
-
-                    var subItems = properties.subItems;
-                    // 存在 subItems，即当前这个 formItemConfig.id 的 formItem 后面有添加按钮
-                    // 添加按钮添加的元素配置就是 subItems.list 里的配置
-                    // 把 subItems 直接挂在 properties.dynamicItems 上，便于之后操作
-                    if (subItems) {
-                        ret.dynamicItems[formItemConfig.id] = subItems;
-
-                        // console.log(model.get('alreadyAddItemsConfigNew'));
-                        // console.log(model.get('alreadyAddItemsConfig'));
-                        // console.log(formItemConfig.id);
-
-                        // var alreadyAddItemsConfig = model.get('alreadyAddItemsConfig');
-                        // if (alreadyAddItemsConfig) {
-                        //     ret.dynamicItems[formItemConfig.id].alreadyAddItemsConfig = alreadyAddItemsConfig;
-                        // }
-
-                        var alreadyAddItemsConfigNew = model.get('alreadyAddItemsConfigNew');
-                        if (alreadyAddItemsConfigNew) {
-                            for (var i = 0, l = alreadyAddItemsConfigNew.length; i < l; i++) {
-                                if (formItemConfig.id == alreadyAddItemsConfigNew[i].refId) {
-                                    var curAlreadyAddItemsConfig = alreadyAddItemsConfigNew[i].alreadyAddItemsConfig;
-                                    if (curAlreadyAddItemsConfig && curAlreadyAddItemsConfig.length) {
-                                        ret.dynamicItems[formItemConfig.id].alreadyAddItemsConfig = curAlreadyAddItemsConfig;
-                                    }
+                                // 如果 uploaderData 不存在，说明这个 Uploader 组件不是必填项
+                                if (uploaderData) {
+                                    ret[fc.id].uploaderVal = {
+                                        width: uploaderData.width || 50,
+                                        height: uploaderData.height || 50,
+                                        previewUrl: decodeURIComponent(uploaderData)
+                                    };
                                 }
                             }
-                            // ret.dynamicItems[formItemConfig.id].alreadyAddItemsConfig = alreadyAddItemsConfig;
+
+                            var subItems = p.subItems;
+                            // 存在 subItems，即当前这个 fc.id 的 formItem 后面有添加按钮
+                            // 添加按钮添加的元素配置就是 subItems.list 里的配置
+                            // 把 subItems 直接挂在 properties.dynamicItems 上，便于之后操作
+                            if (subItems) {
+                                ret.dynamicItems[fc.id] = subItems;
+
+                                // console.log(model.get('alreadyAddItemsConfigNew'));
+                                // console.log(model.get('alreadyAddItemsConfig'));
+                                // console.log(fc.id);
+
+                                // var alreadyAddItemsConfig = model.get('alreadyAddItemsConfig');
+                                // if (alreadyAddItemsConfig) {
+                                //     ret.dynamicItems[fc.id].alreadyAddItemsConfig = alreadyAddItemsConfig;
+                                // }
+
+                                var alreadyAddItemsConfigNew = model.get('alreadyAddItemsConfigNew');
+                                if (alreadyAddItemsConfigNew) {
+                                    for (var i = 0, l = alreadyAddItemsConfigNew.length; i < l; i++) {
+                                        if (fc.id == alreadyAddItemsConfigNew[i].refId) {
+                                            var curAlreadyAddItemsConfig = alreadyAddItemsConfigNew[i].alreadyAddItemsConfig;
+                                            if (curAlreadyAddItemsConfig && curAlreadyAddItemsConfig.length) {
+                                                ret.dynamicItems[fc.id].alreadyAddItemsConfig = curAlreadyAddItemsConfig;
+                                            }
+                                        }
+                                    }
+                                    // ret.dynamicItems[fc.id].alreadyAddItemsConfig = alreadyAddItemsConfig;
+                                }
+                            }
+                        }
+
+                        var components = fc.components;
+
+                        if (components) {
+                            if (!_.isArray(components)) {
+                                ret.components.push(components);
+                            }
+                            else {
+                                Array.prototype.push.apply(ret.components, components);
+                            }
+                        }
+                    }
+                }
+                else {
+                    var properties = formItemConfig.properties;
+
+                    if (properties) {
+                        ret[formItemConfig.id] = properties;
+
+                        // 把 Uploader 类型的 formItem 的值直接放入到 properties 中，
+                        // 便于不用循环就可以回填 Uploader 的值
+                        if (formType === 'edit'
+                            && formItemConfig.type === 'Uploader'
+                        ) {
+                            var uploaderData = model.get(formItemConfig.id);
+
+                            // 如果 uploaderData 不存在，说明这个 Uploader 组件不是必填项
+                            if (uploaderData) {
+                                ret[formItemConfig.id].uploaderVal = {
+                                    width: uploaderData.width || 50,
+                                    height: uploaderData.height || 50,
+                                    previewUrl: decodeURIComponent(uploaderData)
+                                };
+                            }
+                        }
+
+                        var subItems = properties.subItems;
+                        // 存在 subItems，即当前这个 formItemConfig.id 的 formItem 后面有添加按钮
+                        // 添加按钮添加的元素配置就是 subItems.list 里的配置
+                        // 把 subItems 直接挂在 properties.dynamicItems 上，便于之后操作
+                        if (subItems) {
+                            ret.dynamicItems[formItemConfig.id] = subItems;
+
+                            // console.log(model.get('alreadyAddItemsConfigNew'));
+                            // console.log(model.get('alreadyAddItemsConfig'));
+                            // console.log(formItemConfig.id);
+
+                            // var alreadyAddItemsConfig = model.get('alreadyAddItemsConfig');
+                            // if (alreadyAddItemsConfig) {
+                            //     ret.dynamicItems[formItemConfig.id].alreadyAddItemsConfig = alreadyAddItemsConfig;
+                            // }
+
+                            var alreadyAddItemsConfigNew = model.get('alreadyAddItemsConfigNew');
+                            if (alreadyAddItemsConfigNew) {
+                                for (var i = 0, l = alreadyAddItemsConfigNew.length; i < l; i++) {
+                                    if (formItemConfig.id == alreadyAddItemsConfigNew[i].refId) {
+                                        var curAlreadyAddItemsConfig = alreadyAddItemsConfigNew[i].alreadyAddItemsConfig;
+                                        if (curAlreadyAddItemsConfig && curAlreadyAddItemsConfig.length) {
+                                            ret.dynamicItems[formItemConfig.id].alreadyAddItemsConfig = curAlreadyAddItemsConfig;
+                                        }
+                                    }
+                                }
+                                // ret.dynamicItems[formItemConfig.id].alreadyAddItemsConfig = alreadyAddItemsConfig;
+                            }
                         }
                     }
 
-                }
+                    var components = formItemConfig.components;
 
-                var components = formItemConfig.components;
-
-                if (components) {
-                    if (!_.isArray(components)) {
-                        ret.components.push(components);
-                    }
-                    else {
-                        Array.prototype.push.apply(ret.components, components);
+                    if (components) {
+                        if (!_.isArray(components)) {
+                            ret.components.push(components);
+                        }
+                        else {
+                            Array.prototype.push.apply(ret.components, components);
+                        }
                     }
                 }
 
