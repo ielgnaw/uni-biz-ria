@@ -169,6 +169,16 @@ define(function (require) {
                     }
                 }
 
+                var type = formItemConfig.type;
+
+                // TextBoxs 组件
+                if (type === 'TextBoxs') {
+                    for (var j = 0, itemsLen = formItemConfig.items.length; j < itemsLen; j++) {
+                        var tmp = formItemConfig.items[j];
+                        me.set(tmp.id, formData[tmp.id]);
+                    }
+                }
+
                 var key = formItemConfig.id;
                 var value = formData[key];
 
@@ -179,10 +189,10 @@ define(function (require) {
                     // BoxGroup 时用 checked 标识
                     // Select 时用 selected 标识
                     var sc = '';
-                    if (formItemConfig.type === 'BoxGroup') {
+                    if (type === 'BoxGroup') {
                         sc = 'checked';
                     }
-                    else if (formItemConfig.type === 'Select') {
+                    else if (type === 'Select') {
                         sc = 'selected';
                     }
 
@@ -206,7 +216,7 @@ define(function (require) {
                         alreadyAddItemsConfigNew.push({
                             refId: formItemConfig.id,
                             alreadyAddItemsConfig: dealSubItems(formItemConfig.id, subItems, formData, me)
-                        })
+                        });
                     }
                 }
             }
@@ -268,6 +278,7 @@ define(function (require) {
 
                     // 这里判断是为了让非 BoxGroup ， Select 的控件不走下面循环的逻辑
                     if (sc) {
+                        /* jshint maxdepth: 6 */
                         for (var m = 0, jLen = cloneObj.list.length; m < jLen; m++) {
                             if (value.indexOf(cloneObj.list[m].value) >= 0) {
                                 cloneObj.list[m][sc] = 1;
