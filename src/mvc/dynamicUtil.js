@@ -64,6 +64,11 @@ define(function (require) {
             var urls = [];
             for (var index = 0; index < len; index++) {
                 var dom = $(ajaxValidDoms[index]);
+                var esuiDom = view.get(dom.attr('name'));
+                var value = esuiDom.getValue();
+                if (!uniUtil.trim(value)) {
+                    continue;
+                }
                 var checkDomainUrl = dom.attr('ajax-valid') || model.get('checkDomainUrl');
                 if (checkDomainUrl) {
                     checkDomainUrl += ''
@@ -71,12 +76,11 @@ define(function (require) {
                         + model.userId
                         + '&nestId='
                         + model.nestId;
-                    var esuiDom = view.get(dom.attr('name'));
                     urls.push({
                         url: checkDomainUrl,
                         esuiDom: esuiDom,
                         data: {
-                            check: esuiDom.getValue()
+                            check: value
                         }
                     });
                 }
