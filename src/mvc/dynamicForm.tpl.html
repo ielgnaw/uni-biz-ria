@@ -57,7 +57,14 @@
                     </span>
                     <!-- if: ${formItem.rules.required} -->
                         <span class="red">*</span>
-                        <span>${i18n.BT}</span>
+                        <span>
+                            ${i18n.BT} <!-- if: ${formItem.properties.extTip} -->${formItem.properties.extTip}<!-- /if -->
+                        </span>
+                    <!-- else -->
+                        <!-- if: ${formItem.properties.extTip} -->
+                            <span class="red">*</span>
+                            <span>${formItem.properties.extTip}</span>
+                        <!-- /if -->
                     <!-- /if -->
                 </div>
             <!-- elif: ${formItem.type} == 'Select' -->
